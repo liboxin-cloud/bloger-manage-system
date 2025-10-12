@@ -1,0 +1,13 @@
+CREATE TABLE `comment` (
+  `comment_id` int NOT NULL AUTO_INCREMENT COMMENT '评论ID',
+  `article_id` int NOT NULL COMMENT '文章ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `content` text NOT NULL COMMENT '评论内容',
+  `parent_id` int DEFAULT NULL COMMENT '父评论ID（用于回复功能）',
+  `created_time` datetime NOT NULL COMMENT '创建时间',
+  `update_time` datetime NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (`comment_id`),
+  KEY `idx_article_id` (`article_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_parent_id` (`parent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评论表';

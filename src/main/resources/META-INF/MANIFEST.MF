@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: com.example.campus_blog_forum_system.campus_blog_forum_syste
+ m
+

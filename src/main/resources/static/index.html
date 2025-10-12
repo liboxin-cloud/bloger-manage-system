@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园论坛 - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+        }
+        .article-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .article-cover {
+            height: 200px;
+            object-fit: cover;
+        }
+        .category-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .article-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .sidebar {
+            position: sticky;
+            top: 20px;
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .user-info {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .category-list .list-group-item {
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+        .category-list .list-group-item:hover {
+            background-color: #e9ecef;
+        }
+        .category-list .list-group-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+        .article-state {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .state-published {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .state-draft {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .no-articles {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .no-articles i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-chat-square-text me-2"></i>校园论坛
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">热门文章</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">最新发布</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center" id="userActions">
+                <!-- 未登录状态 -->
+                <div id="guestActions">
+                    <a href="login.vue" class="btn btn-outline-light me-2">登录</a>
+                    <a href="login.vue" class="btn btn-light">注册</a>
+                </div>
+                <!-- 登录状态 -->
+                <div id="userActionsLoggedIn" class="d-none">
+                    <span class="text-white me-3" id="welcomeUser"></span>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>个人中心
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>个人信息</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>我的文章</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 主要内容 -->
+<div class="container mt-4">
+    <div class="row">
+        <!-- 左侧文章列表 -->
+        <div class="col-lg-8">
+            <!-- 筛选和搜索 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">所有分类</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="stateFilter">
+                                <option value="">所有状态</option>
+                                <option value="已发布">已发布</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100" id="filterBtn">筛选</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文章列表 -->
+            <div id="articlesContainer">
+                <!-- 文章将通过JS动态加载 -->
+                <div class="no-articles" id="noArticles">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <h4>暂无文章</h4>
+                    <p>当前没有符合条件的文章，请稍后再试</p>
+                </div>
+            </div>
+
+            <!-- 分页 -->
+            <nav aria-label="文章分页" id="paginationContainer">
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- 分页将通过JS动态生成 -->
+                </ul>
+            </nav>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <div class="col-lg-4">
+            <!-- 用户信息 -->
+            <div class="user-info mb-4" id="userInfoCard">
+                <h5><i class="bi bi-person-circle me-2"></i>用户信息</h5>
+                <div id="userInfoContent">
+                    <p class="text-muted">请登录后查看个人信息</p>
+                </div>
+            </div>
+
+            <!-- 分类列表 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-tags me-2"></i>文章分类</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush category-list" id="categoryList">
+                        <!-- 分类将通过JS动态加载 -->
+                        <a href="#" class="list-group-item list-group-item-action active" data-id="">
+                            全部分类
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 热门标签 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-fire me-2"></i>热门标签</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-secondary">技术分享</span>
+                        <span class="badge bg-secondary">校园生活</span>
+                        <span class="badge bg-secondary">学习心得</span>
+                        <span class="badge bg-secondary">社团活动</span>
+                        <span class="badge bg-secondary">就业指导</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="bi bi-chat-square-text me-2"></i>校园论坛</h5>
+                <p>一个专为校园用户打造的交流平台，分享知识、经验和生活。</p>
+            </div>
+            <div class="col-md-3">
+                <h5>链接</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white text-decoration-none">关于我们</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">联系我们</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">帮助中心</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>关注我们</h5>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-white"><i class="bi bi-wechat"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-weibo"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="text-center">
+            <p class="mb-0">&copy; 2023 校园论坛. 保留所有权利.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 全局变量
+    let token = localStorage.getItem('userToken');
+    let currentPage = 1;
+    const pageSize = 5;
+    let categories = [];
+    let currentFilters = {
+        categoryId: '',
+        state: '已发布' // 默认只显示已发布的文章
+    };
+
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化页面
+        initPage();
+
+        // 绑定事件
+        bindEvents();
+
+        // 加载数据
+        loadCategories();
+        loadArticles(1);
+    });
+
+    // 初始化页面
+    function initPage() {
+        // 检查用户登录状态
+        checkUserLogin();
+    }
+
+    // 检查用户登录状态
+    function checkUserLogin() {
+        if (token) {
+            // 显示用户已登录状态
+            document.getElementById('guestActions').classList.add('d-none');
+            document.getElementById('userActionsLoggedIn').classList.remove('d-none');
+
+            // 显示欢迎信息
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(decodeURIComponent(escape(atob(base64))));
+                document.getElementById('welcomeUser').textContent = `欢迎, ${payload.username}`;
+            } catch (e) {
+                console.error('解析token失败:', e);
+            }
+
+            // 加载用户信息
+            loadUserInfo();
+        }
+    }
+
+    // 绑定事件
+    function bindEvents() {
+        // 筛选按钮
+        document.getElementById('filterBtn').addEventListener('click', function() {
+            currentFilters.categoryId = document.getElementById('categoryFilter').value;
+            currentFilters.state = document.getElementById('stateFilter').value;
+            loadArticles(1);
+        });
+
+        // 分类列表点击事件
+        document.getElementById('categoryList').addEventListener('click', function(e) {
+            if (e.target.classList.contains('list-group-item')) {
+                e.preventDefault();
+                document.querySelectorAll('.category-list .list-group-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                currentFilters.categoryId = e.target.getAttribute('data-id');
+                loadArticles(1);
+            }
+        });
+
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('userToken');
+        window.location.reload();
+    }
+
+    // 加载用户信息
+    function loadUserInfo() {
+        // 用户信息接口可能需要调整
+        // 这里暂时不实现，因为后端没有提供相关接口
+    }
+
+    // 加载文章列表
+    // 加载文章列表
+    function loadArticles(page) {
+        currentPage = page;
+        let url = `/user/article?pageNum=${page}&pageSize=${pageSize}`;
+
+        if (currentFilters.categoryId) {
+            url += `&categoryId=${currentFilters.categoryId}`;
+        }
+
+        if (currentFilters.state) {
+            url += `&state=${currentFilters.state}`;
+        }
+
+        // 添加认证头
+        axios.get(url, {
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        })
+            .then(response => {
+                const data = response.data.data;
+                renderArticles(data.items);
+                renderPagination(data.total, page, pageSize);
+            })
+            .catch(error => {
+                console.error('加载文章失败:', error);
+                document.getElementById('articlesContainer').innerHTML = `
+                <div class="alert alert-danger">加载文章失败，请稍后重试</div>
+            `;
+            });
+    }
+
+
+    // 渲染文章列表
+    function renderArticles(articles) {
+        const container = document.getElementById('articlesContainer');
+
+        if (!articles || articles.length === 0) {
+            container.innerHTML = `
+                    <div class="no-articles">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <h4>暂无文章</h4>
+                        <p>当前没有符合条件的文章</p>
+                    </div>
+                `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        articles.forEach(article => {
+            // 查找分类名称
+            const category = categories.find(c => c.id === article.categoryId);
+            const categoryName = category ? category.categoryName : '未知分类';
+
+            const articleElement = document.createElement('div');
+            articleElement.className = 'card article-card';
+            articleElement.innerHTML = `
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="${article.coverImg}" class="img-fluid article-cover" alt="${article.title}">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body h-100 d-flex flex-column">
+                                <h5 class="card-title">${article.title}</h5>
+                                <p class="card-text flex-grow-1">${article.content.substring(0, 100)}...</p>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <div>
+                                        <span class="category-badge me-2">${categoryName}</span>
+                                        <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">${article.state}</span>
+                                    </div>
+                                    <div class="article-meta">
+                                        <small>
+                                            <i class="bi bi-calendar me-1"></i>${new Date(article.createTime).toLocaleDateString()}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            container.appendChild(articleElement);
+        });
+    }
+
+    // 渲染分页
+    function renderPagination(total, currentPage, pageSize) {
+        const totalPages = Math.ceil(total / pageSize);
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (totalPages <= 1) {
+            document.getElementById('paginationContainer').classList.add('d-none');
+            return;
+        }
+
+        document.getElementById('paginationContainer').classList.remove('d-none');
+
+        // 上一页
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevItem.innerHTML = `
+                <a class="page-link" href="#" ${currentPage !== 1 ? `onclick="loadArticles(${currentPage - 1})"` : ''}>
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+        pagination.appendChild(prevItem);
+
+        // 页码
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            pageItem.innerHTML = `
+                    <a class="page-link" href="#" onclick="loadArticles(${i})">${i}</a>
+                `;
+            pagination.appendChild(pageItem);
+        }
+
+        // 下一页
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextItem.innerHTML = `
+                <a class="page-link" href="#" ${currentPage !== totalPages ? `onclick="loadArticles(${currentPage + 1})"` : ''}>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+        pagination.appendChild(nextItem);
+    }
+
+    // 加载分类列表
+    // 加载分类列表
+    function loadCategories() {
+        axios.get('/user/category', {
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+            }
+        })
+            .then(response => {
+                categories = response.data.data || [];
+                renderCategories(categories);
+                renderCategoryFilter(categories);
+            })
+            .catch(error => {
+                console.error('加载分类失败:', error);
+            });
+    }
+
+
+    // 渲染分类列表
+    function renderCategories(categories) {
+        const container = document.getElementById('categoryList');
+
+        // 保留"全部分类"选项
+        container.innerHTML = `
+                <a href="#" class="list-group-item list-group-item-action active" data-id="">
+                    全部分类
+                </a>
+            `;
+
+        categories.forEach(category => {
+            const categoryElement = document.createElement('a');
+            categoryElement.href = '#';
+            categoryElement.className = 'list-group-item list-group-item-action';
+            categoryElement.setAttribute('data-id', category.id);
+            categoryElement.textContent = category.categoryName;
+            container.appendChild(categoryElement);
+        });
+    }
+
+    // 渲染分类筛选下拉框
+    function renderCategoryFilter(categories) {
+        const select = document.getElementById('categoryFilter');
+
+        // 保留默认选项
+        select.innerHTML = '<option value="">所有分类</option>';
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.categoryName;
+            select.appendChild(option);
+        });
+    }
+</script>
+</body>
+</html>

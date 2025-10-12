@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园论坛管理系统 - 登录</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+        }
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .login-card {
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: none;
+            background: #ffffff;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .login-body {
+            padding: 30px;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+        }
+        .form-control:focus {
+            border-color: #6c757d;
+            box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+            background-color: #fff;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .login-footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background-color: #f8f9fa;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .user-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .user-type-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #495057;
+        }
+        .user-type-btn.active {
+            border-color: #6c757d;
+            background: #e9ecef;
+            color: #212529;
+            font-weight: 500;
+        }
+        .user-type-btn:hover {
+            border-color: #adb5bd;
+            background: #e9ecef;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .input-group-text {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+        .form-check-label {
+            color: #6c757d;
+        }
+        .captcha-image {
+            border: 1px solid #dee2e6;
+            border-left: none;
+            border-radius: 0 4px 4px 0;
+            height: 42px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            min-width: 120px;
+            object-fit: cover;
+            box-sizing: border-box;
+        }
+
+        #captcha {
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+            height: 42px;
+            box-sizing: border-box;
+        }
+
+
+
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">
+                <i class="bi bi-chat-square-text"></i>
+            </div>
+            <h2>校园论坛管理系统</h2>
+            <p class="mb-0">请登录您的账户</p>
+        </div>
+        <div class="login-body">
+            <div class="alert alert-danger d-none" id="errorMessage"></div>
+
+            <div class="user-type-selector">
+                <button type="button" class="user-type-btn active" data-type="user">普通用户</button>
+                <button type="button" class="user-type-btn" data-type="admin">管理员</button>
+            </div>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">用户名</label>
+                    <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                        <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">密码</label>
+                    <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                        <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                    </div>
+                </div>
+                <!-- 在密码输入框后添加验证码输入区域 -->
+                <!-- 替换原有的验证码部分 -->
+                <div class="mb-3">
+                    <label for="captcha" class="form-label">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="captcha" placeholder="请输入验证码" maxlength="4">
+                        <img id="captchaImage" class="captcha-image" alt="验证码" title="点击刷新验证码">
+                    </div>
+                </div>
+
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">记住我</label>
+                </div>
+                <button type="submit" class="btn btn-login w-100" id="loginBtn">
+                    <span id="loginText">登录</span>
+                    <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+            </form>
+        </div>
+        <div class="login-footer">
+            <p class="mb-0 text-muted">© 2025 校园论坛管理系统</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 全局变量
+    let userType = 'user'; // 默认为普通用户
+
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+        // 绑定事件
+        bindEvents();
+
+        // 检查是否已登录
+        checkLoginStatus();
+
+        // 初始化验证码
+        refreshCaptcha();
+    });
+
+    // 绑定事件
+    function bindEvents() {
+        // 用户类型选择
+        document.querySelectorAll('.user-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.user-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                userType = this.getAttribute('data-type');
+            });
+        });
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            performLogin();
+        });
+
+        // 回车登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('username').value && document.getElementById('password').value) {
+                    performLogin();
+                }
+            }
+        });
+
+        // 点击验证码图片刷新验证码
+        document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+    }
+
+    // 检查登录状态
+    function checkLoginStatus() {
+        const userToken = localStorage.getItem('userToken');
+        const adminToken = localStorage.getItem('adminToken');
+
+        if (userToken || adminToken) {
+            // 解析token获取用户名和角色信息
+            let username = '';
+            let role = '';
+            const token = userToken || adminToken;
+
+            try {
+                // 解析JWT token获取用户名和角色
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(decodeURIComponent(escape(atob(base64))));
+                username = payload.username;
+
+                // 获取角色信息
+                if (userToken) {
+                    role = '普通用户';
+                } else if (adminToken) {
+                    // 管理员角色区分
+                    const roleValue = payload.role || 0;
+                    if (roleValue == 1) {
+                        role = '超级管理员';
+                    } else {
+                        role = '管理员';
+                    }
+                }
+            } catch (e) {
+                console.error('解析token失败:', e);
+                username = '用户';
+                role = userToken ? '普通用户' : '管理员';
+            }
+
+            // 显示已登录信息和选择项，但不显示完整token
+            const loginBody = document.querySelector('.login-body');
+            loginBody.innerHTML = `            <div class="alert alert-info">
+                <h5>您已经登录了系统</h5>
+                <p>用户: ${username}</p>
+                <p>角色: ${role}</p>
+                <button id="continueToSystem" class="btn btn-primary me-2">
+                    继续访问${userToken ? '首页' : '后台'}                </button>
+                <button id="relogin" class="btn btn-warning">重新登录</button>
+            </div>
+        `;
+
+            // 绑定按钮事件
+            document.getElementById('continueToSystem').addEventListener('click', function() {
+                window.location.href = userToken ? '/index' : '/admin';
+            });
+
+            document.getElementById('relogin').addEventListener('click', function() {
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('rememberedUser');
+                localStorage.removeItem('rememberedAdmin');
+                window.location.reload();
+            });
+
+            return true;
+        }
+        return false;
+    }
+    // 刷新验证码
+    function refreshCaptcha() {
+        axios.get('/captcha/generate')
+            .then(response => {
+                if (response.data.success) {
+                    document.getElementById('captchaImage').src = response.data.image;
+                }
+            })
+            .catch(error => {
+                console.error('获取验证码失败:', error);
+            });
+    }
+
+    // 执行登录
+    function performLogin() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const captcha = document.getElementById('captcha').value.trim();
+
+        // 验证输入
+        if (!username || !password) {
+            showError('请输入用户名和密码');
+            return;
+        }
+
+        // 验证用户名格式
+        if (username.length < 5 || username.length > 16 || /\s/.test(username)) {
+            showError('用户名必须为5-16位且不能包含空格');
+            return;
+        }
+
+        // 验证密码格式
+        if (password.length < 5 || password.length > 16 || /\s/.test(password)) {
+            showError('密码必须为5-16位且不能包含空格');
+            return;
+        }
+
+        // 验证验证码
+        if (!captcha) {
+            showError('请输入验证码');
+            return;
+        }
+
+        // 显示加载状态
+        setLoginButtonState(true);
+        hideError();
+
+        // 根据用户类型执行不同的登录逻辑
+        if (userType === 'admin') {
+            adminLogin(username, password, captcha);
+        } else {
+            userLogin(username, password);
+        }
+    }
+
+
+    // 普通用户登录
+    // 普通用户登录函数
+    function userLogin(username, password) {
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('password', password);
+
+        axios.post('/user/login', params, {
+            headers: {
+                // 修改为正确的Content-Type
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+            .then(response => {
+                // 注意：根据你的Result类，成功时code应该是1，失败时是0
+                if (response.data.code === 1) {
+                    showError(response.data.message || '登录失败');
+                    setLoginButtonState(false);
+                    return;
+                }
+
+                // 直接从data字段获取token
+                const data = response.data.data || {};
+                const token = data.token;
+
+                if (!token) {
+                    showError('登录成功但未获取到token');
+                    setLoginButtonState(false);
+                    return;
+                }
+
+                // 保存token
+                localStorage.setItem('userToken', token);
+
+                // 处理记住我功能
+                if (document.getElementById('rememberMe').checked) {
+                    localStorage.setItem('rememberedUser', username);
+                } else {
+                    localStorage.removeItem('rememberedUser');
+                }
+
+                // 跳转到首页 - 使用相对路径
+                window.location.href = '/index';
+            })
+            .catch(error => {
+                console.error('登录失败:', error);
+                showError(error.response?.data?.message || '登录失败，请检查用户名和密码');
+                setLoginButtonState(false);
+            });
+    }
+
+
+
+    // 管理员登录
+    // 在adminLogin和userLogin函数中修改错误处理逻辑
+    function adminLogin(username, password, captcha) {
+        axios.post('/admin/auth/login', {
+            username: username,
+            password: password,
+            captcha: captcha
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                const data = response.data;
+
+                if (data.error) {
+                    showError(data.error);
+                    setLoginButtonState(false);
+                    refreshCaptcha();
+
+                    // 如果是因为账户锁定，则不刷新验证码
+                    if (data.error.includes("锁定")) {
+                        // 不刷新验证码
+                    } else {
+                        refreshCaptcha();
+                    }
+                    return;
+                }
+
+                const token = data.token;
+
+                if (!token) {
+                    showError('登录成功但未获取到token');
+                    setLoginButtonState(false);
+                    return;
+                }
+
+                localStorage.setItem('adminToken', token);
+
+                if (document.getElementById('rememberMe').checked) {
+                    localStorage.setItem('rememberedAdmin', username);
+                } else {
+                    localStorage.removeItem('rememberedAdmin');
+                }
+
+                window.location.href = '/admin';
+            })
+            .catch(error => {
+                console.error('管理员登录失败:', error);
+                showError(error.response?.data?.error || error.response?.data || '管理员登录失败，请检查用户名和密码');
+                setLoginButtonState(false);
+
+                // 检查是否因为账户锁定
+                if (!(error.response?.data?.error && error.response.data.error.includes("锁定"))) {
+                    refreshCaptcha();
+                }
+            });
+    }
+
+
+    // 显示错误信息
+    function showError(message) {
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.textContent = message;
+        errorElement.classList.remove('d-none');
+
+        // 添加调试信息
+        console.log('错误信息:', message);
+    }
+
+    // 隐藏错误信息
+    function hideError() {
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.classList.add('d-none');
+    }
+
+    // 设置登录按钮状态
+    function setLoginButtonState(loading) {
+        const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.getElementById('loginText');
+        const loginSpinner = document.getElementById('loginSpinner');
+
+        if (loading) {
+            loginText.textContent = '登录中...';
+            loginSpinner.classList.remove('d-none');
+            loginBtn.disabled = true;
+        } else {
+            loginText.textContent = '登录';
+            loginSpinner.classList.add('d-none');
+            loginBtn.disabled = false;
+        }
+    }
+
+    // 页面加载时填充记住的用户名
+    window.addEventListener('load', function() {
+        const rememberedUser = localStorage.getItem('rememberedUser');
+        const rememberedAdmin = localStorage.getItem('rememberedAdmin');
+
+        if (rememberedUser) {
+            document.getElementById('username').value = rememberedUser;
+            document.getElementById('rememberMe').checked = true;
+            // 设置为用户类型
+            document.querySelectorAll('.user-type-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.user-type-btn[data-type="user"]').classList.add('active');
+            userType = 'user';
+        } else if (rememberedAdmin) {
+            document.getElementById('username').value = rememberedAdmin;
+            document.getElementById('rememberMe').checked = true;
+            // 设置为管理员类型
+            document.querySelectorAll('.user-type-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.user-type-btn[data-type="admin"]').classList.add('active');
+            userType = 'admin';
+        }
+    });
+</script>
+</body>
+</html>

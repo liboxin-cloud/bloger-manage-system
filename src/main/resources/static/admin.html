@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园论坛管理系统 - 管理员后台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 56px;
+            background-color: #343a40;
+            color: white;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding-top: 56px;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.75);
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: #495057;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .status-active {
+            color: #198754;
+        }
+        .status-inactive {
+            color: #dc3545;
+        }
+        .table th {
+            border-top: none;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <i class="bi bi-grid-3x3-gap me-2"></i>校园论坛管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="adminUsername"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logoutBtn">
+                        <i class="bi bi-box-arrow-right me-1"></i>退出
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏 -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-section="dashboard">
+                            <i class="bi bi-speedometer2 me-2"></i>仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="admins">
+                            <i class="bi bi-people me-2"></i>管理员管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="users">
+                            <i class="bi bi-person-circle me-2"></i>用户管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="articles">
+                            <i class="bi bi-file-earmark-text me-2"></i>文章管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="categories">
+                            <i class="bi bi-tags me-2"></i>分类管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="files">
+                            <i class="bi bi-cloud-upload me-2"></i>文件上传
+                        </a>
+                    </li>
+                    <!-- 在侧边栏的<ul class="nav flex-column">中添加个人中心菜单项 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="profile">
+                            <i class="bi bi-person me-2"></i>个人中心
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <!-- 仪表盘 -->
+            <section id="dashboard" class="section active">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">仪表盘</h1>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">管理员总数</h5>
+                                <h2 class="text-primary" id="adminCount">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">用户总数</h5>
+                                <h2 class="text-success" id="userCount">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">文章总数</h5>
+                                <h2 class="text-info" id="articleCount">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <!--                    <div class="col-md-6">-->
+                    <!--                        <div class="card">-->
+                    <!--                            <div class="card-header">-->
+                    <!--                                <h5 class="card-title mb-0">最近文章</h5>-->
+                    <!--                            </div>-->
+                    <!--                            <div class="card-body">-->
+                    <!--                                <ul id="recentArticles" class="list-unstyled">-->
+                    <!--                                    <li>暂无文章</li>-->
+                    <!--                                </ul>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">系统信息</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>校园论坛管理系统 v1.0</p>
+                                <p>欢迎使用管理员后台</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 管理员管理 -->
+            <section id="admins" class="section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">管理员管理</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+                            <i class="bi bi-plus-lg me-1"></i>添加管理员
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-none" id="adminError"></div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>昵称</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                        <!-- 管理员数据将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav>
+                    <ul class="pagination" id="adminPagination">
+                        <!-- 分页将通过JS动态生成 -->
+                    </ul>
+                </nav>
+            </section>
+
+            <!-- 用户管理 -->
+            <section id="users" class="section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">用户管理</h1>
+                    <div class="input-group mb-3" style="width: 300px;">
+                        <input type="text" class="form-control" placeholder="搜索用户名" id="userSearch">
+                        <button class="btn btn-outline-secondary" type="button" id="searchUserBtn">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-none" id="userError"></div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>昵称</th>
+                            <th>邮箱</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                        <!-- 用户数据将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav>
+                    <ul class="pagination" id="userPagination">
+                        <!-- 分页将通过JS动态生成 -->
+                    </ul>
+                </nav>
+            </section>
+
+            <!-- 文章管理 -->
+            <section id="articles" class="section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">文章管理</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addArticleModal">
+                            <i class="bi bi-plus-lg me-1"></i>添加文章
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-none" id="articleError"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <select class="form-select" id="articleCategoryFilter">
+                            <option value="">所有分类</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="articleStateFilter">
+                            <option value="">所有状态</option>
+                            <option value="已发布">已发布</option>
+                            <option value="草稿">草稿</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary" id="filterArticlesBtn">筛选</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>分类</th>
+                            <th>状态</th>
+                            <th>创建人</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="articleTableBody">
+                        <!-- 文章数据将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav>
+                    <ul class="pagination" id="articlePagination">
+                        <!-- 分页将通过JS动态生成 -->
+                    </ul>
+                </nav>
+            </section>
+
+            <!-- 分类管理 -->
+            <section id="categories" class="section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">分类管理</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            <i class="bi bi-plus-lg me-1"></i>添加分类
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-none" id="categoryError"></div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>分类名称</th>
+                            <th>分类别名</th>
+                            <th>创建时间</th>
+                            <th>更新时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="categoryTableBody">
+                        <!-- 分类数据将通过JS动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 文件上传 -->
+            <section id="files" class="section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">文件上传</h1>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">上传文件</h5>
+                                <div class="upload-area" id="uploadArea">
+                                    <i class="bi bi-cloud-upload" style="font-size: 3rem;"></i>
+                                    <p class="mt-3">点击选择文件或拖拽文件到此处</p>
+                                    <p class="text-muted">支持常见文件格式</p>
+                                    <input type="file" id="fileInput" class="d-none">
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-primary" id="uploadBtn">上传</button>
+                                    <button class="btn btn-secondary" id="selectFileBtn">选择文件</button>
+                                </div>
+                                <div class="mt-3" id="uploadResult"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">上传说明</h5>
+                                <ul>
+                                    <li>支持常见文件格式</li>
+                                    <li>文件大小限制：10MB</li>
+                                    <li>上传后会生成访问链接</li>
+                                    <li>请勿上传敏感信息</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- 在</main>标签前添加个人中心板块 -->
+            <!-- 个人中心 -->
+            <!-- 替换原来的个人中心板块 -->
+            <!-- 个人中心 -->
+            <section id="profile" class="section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">个人中心</h1>
+                </div>
+
+                <!-- 导航链接 -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="d-flex gap-3">
+                            <a href="#" class="btn btn-outline-primary active" id="showProfileInfo">个人信息</a>
+                            <a href="#" class="btn btn-outline-secondary" id="showChangePassword">修改密码</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 个人信息面板（默认显示） -->
+                <div id="profileInfoPanel" class="profile-panel">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">基本信息</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><strong>用户名:</strong></label>
+                                            <p class="form-control-plaintext" id="displayUsername">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><strong>昵称:</strong></label>
+                                            <p class="form-control-plaintext" id="displayNickname">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><strong>邮箱:</strong></label>
+                                            <p class="form-control-plaintext" id="displayEmail">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><strong>角色:</strong></label>
+                                            <p class="form-control-plaintext" id="displayRole">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><strong>状态:</strong></label>
+                                            <p class="form-control-plaintext" id="displayStatus">-</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><strong>创建时间:</strong></label>
+                                            <p class="form-control-plaintext" id="displayCreateTime">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">操作</h5>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-primary w-100 mb-2" id="editProfileBtn">
+                                        <i class="bi bi-pencil me-1"></i>编辑信息
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 修改密码面板（默认隐藏） -->
+                <div id="changePasswordPanel" class="profile-panel" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">修改密码</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="passwordForm">
+                                        <div class="mb-3">
+                                            <label for="oldPassword" class="form-label">原密码</label>
+                                            <input type="password" class="form-control" id="oldPassword" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="newPassword" class="form-label">新密码</label>
+                                            <input type="password" class="form-control" id="newPassword" required>
+                                            <div class="form-text">密码长度至少5位</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="confirmPassword" class="form-label">确认新密码</label>
+                                            <input type="password" class="form-control" id="confirmPassword" required>
+                                        </div>
+                                        <button type="button" class="btn btn-warning" id="changePasswordBtn">修改密码</button>
+                                        <button type="button" class="btn btn-secondary ms-2" id="cancelPasswordBtn">取消</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">安全提示</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li>请设置强度较高的密码</li>
+                                        <li>建议定期更换密码</li>
+                                        <li>不要使用与其他网站相同的密码</li>
+                                        <li>不要将密码告诉他人</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 修改个人信息面板（默认隐藏） -->
+                <div id="editProfilePanel" class="profile-panel" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">修改个人信息</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="editProfileForm">
+                                        <div class="mb-3">
+                                            <label for="editUsername" class="form-label">用户名</label>
+                                            <input type="text" class="form-control" id="editUsername" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editNickname" class="form-label">昵称</label>
+                                            <input type="text" class="form-control" id="editNickname" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editEmail" class="form-label">邮箱</label>
+                                            <input type="email" class="form-control" id="editEmail" required>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" id="saveProfileBtn">保存</button>
+                                        <button type="button" class="btn btn-secondary ms-2" id="cancelEditBtn">取消</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<!-- 添加管理员模态框 -->
+<div class="modal fade" id="addAdminModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加管理员</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAdminForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nickname" class="form-label">昵称</label>
+                        <input type="text" class="form-control" id="nickname" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveAdminBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加文章模态框 -->
+<div class="modal fade" id="addArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加文章</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addArticleForm">
+                    <div class="mb-3">
+                        <label for="articleTitle" class="form-label">标题</label>
+                        <input type="text" class="form-control" id="articleTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleContent" class="form-label">内容</label>
+                        <textarea class="form-control" id="articleContent" rows="5" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleCoverImg" class="form-label">封面图片URL</label>
+                        <input type="url" class="form-control" id="articleCoverImg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleState" class="form-label">状态</label>
+                        <select class="form-select" id="articleState">
+                            <option value="已发布">已发布</option>
+                            <option value="草稿">草稿</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleCategoryId" class="form-label">分类</label>
+                        <select class="form-select" id="articleCategoryId">
+                            <!-- 分类选项将通过JS动态加载 -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveArticleBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加分类模态框 -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加分类</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">分类名称</label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryAlias" class="form-label">分类别名</label>
+                        <input type="text" class="form-control" id="categoryAlias" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveCategoryBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 全局变量
+    let token = localStorage.getItem('adminToken');
+    let currentPage = {
+        admins: 1,
+        users: 1,
+        articles: 1
+    };
+    const pageSize = 10;
+    let categories = [];
+
+    let currentUserRole = null;
+
+    // 添加响应拦截器，处理401错误（增强版）
+    axios.interceptors.response.use(
+        function (response) {
+            return response;
+        },
+        function (error) {
+            if (error.response && error.response.status === 401) {
+                localStorage.removeItem('adminToken');
+
+                // 创建模态框显示过期信息
+                const modalHtml = `
+                <div class="modal fade" id="tokenExpiredModal" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">登录过期</h5>
+                            </div>
+                            <div class="modal-body">
+                                <p>您的登录会话已过期，请重新登录。</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" id="redirectToLogin">前往登录</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                // 添加模态框到页面
+                if (!document.getElementById('tokenExpiredModal')) {
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                    document.getElementById('redirectToLogin').addEventListener('click', function() {
+                        window.location.href = '/login';
+                    });
+                }
+
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('tokenExpiredModal'));
+                modal.show();
+            }
+            return Promise.reject(error);
+        }
+    );
+
+
+    // 页面加载完成后执行
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+        // 检查是否有token
+        if (!token) {
+            alert('请先登录');
+            window.location.href = '/login';
+            return;
+        }
+
+        console.log('开始初始化页面');
+        // 初始化页面
+        initPage();
+
+        // 绑定事件
+        bindEvents();
+
+        // 检查是否有保存的模块状态
+        const savedSection = sessionStorage.getItem('currentSection');
+        if (savedSection && document.getElementById(savedSection)) {
+            // 检查权限，防止普通管理员访问受限模块
+            if (savedSection === 'admins' && currentUserRole !== "1") {
+                // 普通管理员不能访问管理员管理模块
+                switchToSection('dashboard');
+            } else {
+                // 恢复之前保存的模块
+                switchToSection(savedSection);
+            }
+        } else {
+            // 默认显示仪表盘
+            switchToSection('dashboard');
+            // 加载数据
+            console.log('开始加载仪表盘数据');
+            loadDashboardData();
+        }
+
+        console.log('所有数据加载完成');
+    });
+
+    // 新增：切换模块的通用函数
+    // 新增：切换模块的通用函数
+    function switchToSection(sectionId) {
+        // 权限检查 - 防止普通管理员访问管理员管理模块
+        if (sectionId === 'admins' && currentUserRole !== "1") {
+            // 如果是普通管理员尝试访问管理员管理，重定向到仪表盘
+            sectionId = 'dashboard';
+        }
+
+        // 保存当前模块到 sessionStorage
+        sessionStorage.setItem('currentSection', sectionId);
+
+        // 更新激活状态
+        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+        const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+
+        // 显示对应内容
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+
+        // 根据不同的板块自动刷新对应的数据
+        switch(sectionId) {
+            case 'dashboard':
+                loadDashboardData();
+                break;
+            case 'admins':
+                loadAdmins(1);
+                break;
+            case 'users':
+                loadUsers(1);
+                break;
+            case 'articles':
+                loadArticles(1);
+                // 确保分类数据也被加载用于筛选
+                if (categories.length === 0) {
+                    loadCategories();
+                }
+                break;
+            case 'categories':
+                loadCategories();
+                break;
+            case 'files':
+                // files板块不需要自动刷新
+                break;
+            case 'profile':
+                // 当切换到个人中心时，加载用户信息
+                loadProfile();
+                break;
+        }
+    }
+
+    // 初始化页面
+    // 初始化页面
+    function initPage() {
+        // 设置当前管理员信息
+        try {
+            // 确保token格式正确
+            if (token.startsWith('Bearer ')) {
+                token = token.substring(7);
+                // 重新保存不带Bearer前缀的token
+                localStorage.setItem('adminToken', token);
+            }
+
+            // 正确解析JWT token
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(decodeURIComponent(escape(atob(base64))));
+            document.getElementById('adminUsername').textContent = payload.username || '管理员';
+
+            // 存储用户角色信息
+            currentUserRole = payload.role || 0;
+            console.log('当前用户:', payload);
+            console.log('当前用户角色:', currentUserRole);
+
+            // 根据角色控制菜单显示
+            toggleMenuItems();
+
+            // 根据角色控制仪表盘显示
+            toggleDashboardItems();
+
+            // 移除原来的 loadProfile() 调用，因为会在 switchToSection 中处理
+        } catch (e) {
+            console.error('解析token失败:', e);
+            // 如果解析失败，清除token并跳转到登录页
+            localStorage.removeItem('adminToken');
+            window.location.href = '/login';
+
+        }
+    }
+
+    // 根据用户角色控制菜单显示
+    function toggleMenuItems() {
+        // 只有超级管理员(角色ID为1)才显示管理员管理菜单
+        if (currentUserRole !== "1") {
+            // 隐藏管理员管理菜单项
+            const adminMenuItem = document.querySelector('a[data-section="admins"]').closest('li');
+            if (adminMenuItem) {
+                adminMenuItem.style.display = 'none';
+            }
+        }
+    }
+    // 绑定事件
+    function bindEvents() {
+        // 侧边栏导航
+        // 修改侧边栏导航部分的代码
+// 侧边栏导航
+        // 侧边栏导航
+        document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('data-section');
+                switchToSection(sectionId);
+            });
+        });
+
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('adminToken');
+            window.location.href = '/login';
+        });
+
+        // 添加管理员
+        document.getElementById('saveAdminBtn').addEventListener('click', addAdmin);
+
+        // 搜索用户
+        document.getElementById('searchUserBtn').addEventListener('click', function() {
+            loadUsers(1, document.getElementById('userSearch').value);
+        });
+
+        // 回车搜索
+        document.getElementById('userSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadUsers(1, this.value);
+            }
+        });
+
+        // 筛选文章
+        document.getElementById('filterArticlesBtn').addEventListener('click', function() {
+            loadArticles(1);
+        });
+
+        // 添加文章
+        document.getElementById('saveArticleBtn').addEventListener('click', addArticle);
+
+        // 添加分类
+        document.getElementById('saveCategoryBtn').addEventListener('click', addCategory);
+
+        // 文件上传相关事件
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                document.getElementById('uploadResult').innerHTML = `<p>已选择文件: ${fileInput.files[0].name}</p>`;
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                document.getElementById('uploadResult').innerHTML = `<p>已选择文件: ${fileInput.files[0].name}</p>`;
+            }
+        });
+
+        document.getElementById('selectFileBtn').addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        document.getElementById('uploadBtn').addEventListener('click', uploadFile);
+
+
+        // 个人中心面板切换
+        if (document.getElementById('showProfileInfo')) {
+            document.getElementById('showProfileInfo').addEventListener('click', function(e) {
+                e.preventDefault();
+                showProfilePanel('info');
+            });
+        }
+
+        if (document.getElementById('showChangePassword')) {
+            document.getElementById('showChangePassword').addEventListener('click', function(e) {
+                e.preventDefault();
+                showProfilePanel('password');
+            });
+        }
+
+        // 编辑个人信息按钮
+        if (document.getElementById('editProfileBtn')) {
+            document.getElementById('editProfileBtn').addEventListener('click', function() {
+                showProfilePanel('edit');
+            });
+        }
+
+        // 保存个人信息
+        if (document.getElementById('saveProfileBtn')) {
+            document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+        }
+
+        // 修改密码
+        if (document.getElementById('changePasswordBtn')) {
+            document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
+        }
+
+        // 取消按钮
+        if (document.getElementById('cancelPasswordBtn')) {
+            document.getElementById('cancelPasswordBtn').addEventListener('click', function() {
+                showProfilePanel('info');
+            });
+        }
+
+        if (document.getElementById('cancelEditBtn')) {
+            document.getElementById('cancelEditBtn').addEventListener('click', function() {
+                showProfilePanel('info');
+            });
+        }
+
+    }
+
+
+    // 加载当前管理员信息
+    function loadProfile() {
+        axios.get('/admin/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    const admin = response.data.data;
+
+                    // 填充显示信息
+                    document.getElementById('displayUsername').textContent = admin.username;
+                    document.getElementById('displayNickname').textContent = admin.nickname;
+                    document.getElementById('displayEmail').textContent = admin.email;
+                    document.getElementById('displayRole').textContent = admin.role === 1 ? '超级管理员' : '普通管理员';
+                    document.getElementById('displayStatus').textContent = admin.status === 1 ? '正常' : '禁用';
+                    document.getElementById('displayCreateTime').textContent = formatDate(admin.createTime);
+
+                    // 填充编辑表单（如果存在）
+                    if (document.getElementById('editUsername')) {
+                        document.getElementById('editUsername').value = admin.username;
+                        document.getElementById('editNickname').value = admin.nickname;
+                        document.getElementById('editEmail').value = admin.email;
+                    }
+                } else {
+                    alert('加载个人信息失败: ' + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载个人信息失败:', error);
+                alert('加载个人信息失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 保存个人信息
+    function saveProfile() {
+        const formData = {
+            nickname: document.getElementById('editNickname').value,
+            email: document.getElementById('editEmail').value
+        };
+
+        axios.put('/admin/profile', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    alert('个人信息保存成功');
+                    // 更新显示信息
+                    document.getElementById('displayNickname').textContent = formData.nickname;
+                    document.getElementById('displayEmail').textContent = formData.email;
+                    // 返回到信息显示面板
+                    showProfilePanel('info');
+                } else {
+                    alert('保存失败: ' + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('保存个人信息失败:', error);
+                alert('保存失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 修改密码
+    function changePassword() {
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        // 验证新密码和确认密码是否一致
+        if (newPassword !== confirmPassword) {
+            alert('新密码和确认密码不一致');
+            return;
+        }
+
+        // 验证密码长度
+        if (newPassword.length < 5) {
+            alert('密码长度至少5位');
+            return;
+        }
+
+        const formData = {
+            oldPassword: oldPassword,
+            newPassword: newPassword
+        };
+
+        axios.put('/admin/profile/password', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    alert('密码修改成功');
+                    document.getElementById('passwordForm').reset();
+                    showProfilePanel('info');
+                } else {
+                    alert('密码修改失败: ' + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('修改密码失败:', error);
+                alert('修改密码失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 面板切换函数
+    function showProfilePanel(panel) {
+        // 隐藏所有面板
+        document.getElementById('profileInfoPanel').style.display = 'none';
+        document.getElementById('changePasswordPanel').style.display = 'none';
+        document.getElementById('editProfilePanel').style.display = 'none';
+
+        // 更新导航按钮状态
+        document.getElementById('showProfileInfo').classList.remove('btn-primary', 'active');
+        document.getElementById('showProfileInfo').classList.add('btn-outline-secondary');
+        document.getElementById('showChangePassword').classList.remove('btn-primary', 'active');
+        document.getElementById('showChangePassword').classList.add('btn-outline-secondary');
+
+        // 显示对应面板
+        switch(panel) {
+            case 'info':
+                document.getElementById('profileInfoPanel').style.display = 'block';
+                document.getElementById('showProfileInfo').classList.remove('btn-outline-secondary');
+                document.getElementById('showProfileInfo').classList.add('btn-primary', 'active');
+                break;
+            case 'password':
+                document.getElementById('changePasswordPanel').style.display = 'block';
+                document.getElementById('showChangePassword').classList.remove('btn-outline-secondary');
+                document.getElementById('showChangePassword').classList.add('btn-primary', 'active');
+                break;
+            case 'edit':
+                // 填充编辑表单数据
+                document.getElementById('editUsername').value = document.getElementById('displayUsername').textContent;
+                document.getElementById('editNickname').value = document.getElementById('displayNickname').textContent;
+                document.getElementById('editEmail').value = document.getElementById('displayEmail').textContent;
+                document.getElementById('editProfilePanel').style.display = 'block';
+                break;
+        }
+    }
+    // 加载仪表盘数据
+    function loadDashboardData() {
+        console.log('加载仪表盘数据...');
+
+        // 只有超级管理员才加载管理员数量
+        if (currentUserRole === "1") {
+            // 获取管理员数量
+            axios.get('/admin/admins?page=1&size=1', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    console.log('管理员数量响应:', response);
+                    if (response.data.code === 0) {
+                        document.getElementById('adminCount').textContent = response.data.data.total;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取管理员数量失败:', error);
+                });
+        }
+
+        // 获取用户数量（所有管理员都可以查看）
+        axios.get('/admin/users?page=1&size=1', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('用户数量响应:', response);
+                if (response.data.code === 0) {
+                    document.getElementById('userCount').textContent = response.data.data.total;
+                }
+            })
+            .catch(error => {
+                console.error('获取用户数量失败:', error);
+            });
+
+        // 获取文章数量（所有管理员都可以查看）
+        axios.get('/admin/articles?pageNum=1&pageSize=1', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('文章数量响应:', response);
+                if (response.data.code === 0) {
+                    document.getElementById('articleCount').textContent = response.data.data.total;
+                }
+            })
+            .catch(error => {
+                console.error('获取文章数量失败:', error);
+            });
+    }
+    // 加载仪表盘数据
+    // 修改仪表盘加载文章总数的代码
+    // 加载仪表盘数据
+    // 根据用户角色控制仪表盘显示
+    function toggleDashboardItems() {
+        // 只有超级管理员(角色ID为1)才显示管理员总数
+        const adminCard = document.querySelector('#dashboard .col-md-4:first-child');
+        if (currentUserRole === "1") {
+            adminCard.style.display = 'block';
+        } else {
+            adminCard.style.display = 'none';
+            // 调整其他卡片的布局，使其占据更多空间
+            const otherCards = document.querySelectorAll('#dashboard .col-md-4:not(:first-child)');
+            otherCards.forEach(card => {
+                card.classList.remove('col-md-4');
+                card.classList.add('col-md-6');
+            });
+        }
+    }
+
+
+    // 加载管理员列表
+    function loadAdmins(page) {
+        hideError('adminError');
+        currentPage.admins = page;
+
+        axios.get(`/admin/admins?page=${page}&size=${pageSize}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    showError('adminError', '加载管理员列表失败: ' + response.data.message);
+                    return;
+                }
+
+                const data = response.data.data;
+                renderAdmins(data.list);
+                renderAdminPagination(data);
+            })
+            .catch(error => {
+                console.error('加载管理员列表失败:', error);
+                showError('adminError', '加载管理员列表失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 渲染管理员列表
+    function renderAdmins(admins) {
+        const tbody = document.getElementById('adminTableBody');
+        tbody.innerHTML = '';
+
+        admins.forEach(admin => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${admin.id}</td>
+                    <td>${admin.username}</td>
+                    <td>${admin.nickname}</td>
+                    <td>${admin.email}</td>
+                    <td>${admin.role === 1 ? '超级管理员' : '普通管理员'}</td>
+                    <td>
+                        <span class="${admin.status === 1 ? 'status-active' : 'status-inactive'}">
+                            ${admin.status === 1 ? '正常' : '禁用'}
+                        </span>
+                    </td>
+                    <td>${formatDate(admin.createTime)}</td>
+                    <td>
+                        ${admin.role !== 1 ? `
+                            <button class="btn btn-sm btn-outline-${admin.status === 1 ? 'danger' : 'success'}"
+                                    onclick="toggleAdminStatus(${admin.id}, ${admin.status})">
+                                ${admin.status === 1 ? '禁用' : '启用'}
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAdmin(${admin.id})">删除</button>
+                        ` : '无操作'}
+                    </td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 删除管理员
+    // 删除管理员
+    function deleteAdmin(adminId) {
+        // 确认删除操作
+        if (!confirm('确定要删除这个管理员吗？此操作不可恢复！')) {
+            return;
+        }
+
+        axios.delete(`/admin/admins/delete/${adminId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                // 检查响应数据
+                if (response.data && response.data.error) {
+                    // 如果有错误信息，显示错误
+                    alert('删除失败: ' + response.data.error);
+                } else if (response.data && response.data.message) {
+                    // 如果有成功信息，显示成功消息
+                    alert(response.data.message || '管理员删除成功');
+                    loadAdmins(currentPage.admins);
+                } else {
+                    // 默认成功处理
+                    alert('管理员删除成功');
+                    loadAdmins(currentPage.admins);
+                }
+            })
+            .catch(error => {
+                console.error('删除管理员失败:', error);
+                alert('删除管理员失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+            });
+    }
+
+    // 渲染管理员分页
+    function renderAdminPagination(data) {
+        const pagination = document.getElementById('adminPagination');
+        pagination.innerHTML = '';
+
+        // 上一页
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${data.hasPreviousPage ? '' : 'disabled'}`;
+        prevItem.innerHTML = `<a class="page-link" href="#" onclick="loadAdmins(${data.prePage})">上一页</a>`;
+        pagination.appendChild(prevItem);
+
+        // 页码
+        for (let i = data.navigateFirstPage; i <= data.navigateLastPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === data.pageNum ? 'active' : ''}`;
+            pageItem.innerHTML = `<a class="page-link" href="#" onclick="loadAdmins(${i})">${i}</a>`;
+            pagination.appendChild(pageItem);
+        }
+
+        // 下一页
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${data.hasNextPage ? '' : 'disabled'}`;
+        nextItem.innerHTML = `<a class="page-link" href="#" onclick="loadAdmins(${data.nextPage})">下一页</a>`;
+        pagination.appendChild(nextItem);
+    }
+
+    // 添加管理员
+    function addAdmin() {
+        const formData = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value,
+            nickname: document.getElementById('nickname').value,
+            email: document.getElementById('email').value
+        };
+
+        axios.post('/admin/admins/add', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.error) {
+                    alert('添加失败: ' + response.data.error);
+                    return;
+                }
+                alert('管理员添加成功');
+                document.getElementById('addAdminForm').reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addAdminModal'));
+                modal.hide();
+                loadAdmins(currentPage.admins);
+            })
+            .catch(error => {
+                console.error('添加管理员失败:', error);
+                alert('添加管理员失败: ' + (error.response?.data || '未知错误'));
+            });
+    }
+
+    // 切换管理员状态
+    // 切换管理员状态
+    function toggleAdminStatus(adminId, currentStatus) {
+        const newStatus = currentStatus === 1 ? 0 : 1;
+        axios.get(`/admin/admins/status/${adminId}/${newStatus}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.error) {
+                    alert('状态更新失败: ' + response.data.error);
+                    return;
+                }
+                alert('状态更新成功');
+                loadAdmins(currentPage.admins);
+            })
+            .catch(error => {
+                console.error('更新状态失败:', error);
+                alert('更新状态失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 加载用户列表
+    function loadUsers(page, keyword = '') {
+        hideError('userError');
+        currentPage.users = page;
+        let url = `/admin/users?page=${page}&size=${pageSize}`;
+        if (keyword) {
+            url += `&keyword=${encodeURIComponent(keyword)}`;
+        }
+
+        axios.get(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    showError('userError', '加载用户列表失败: ' + response.data.message);
+                    return;
+                }
+
+                const data = response.data.data;
+                renderUsers(data.list);
+                renderUserPagination(data);
+            })
+            .catch(error => {
+                console.error('加载用户列表失败:', error);
+                showError('userError', '加载用户列表失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 渲染用户列表
+    function renderUsers(users) {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '';
+
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.nickname}</td>
+                    <td>${user.email}</td>
+                    <td>
+                        <span class="${user.status === 1 ? 'status-active' : 'status-inactive'}">
+                            ${user.status === 1 ? '正常' : '封禁'}
+                        </span>
+                    </td>
+                    <td>${formatDate(user.createTime)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-${user.status === 1 ? 'danger' : 'success'}"
+                                onclick="toggleUserStatus(${user.id}, ${user.status})">
+                            ${user.status === 1 ? '封禁' : '解封'}
+                        </button>
+                    </td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 渲染用户分页
+    function renderUserPagination(data) {
+        const pagination = document.getElementById('userPagination');
+        pagination.innerHTML = '';
+
+        // 上一页
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${data.hasPreviousPage ? '' : 'disabled'}`;
+        prevItem.innerHTML = `<a class="page-link" href="#" onclick="loadUsers(${data.prePage})">上一页</a>`;
+        pagination.appendChild(prevItem);
+
+        // 页码
+        for (let i = data.navigateFirstPage; i <= data.navigateLastPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === data.pageNum ? 'active' : ''}`;
+            pageItem.innerHTML = `<a class="page-link" href="#" onclick="loadUsers(${i})">${i}</a>`;
+            pagination.appendChild(pageItem);
+        }
+
+        // 下一页
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${data.hasNextPage ? '' : 'disabled'}`;
+        nextItem.innerHTML = `<a class="page-link" href="#" onclick="loadUsers(${data.nextPage})">下一页</a>`;
+        pagination.appendChild(nextItem);
+    }
+
+    // 切换用户状态
+    function toggleUserStatus(userId, currentStatus) {
+        const newStatus = currentStatus === 1 ? 0 : 1;
+        axios.get(`/admin/users/status/${userId}/${newStatus}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.error) {
+                    alert('更新失败: ' + response.data.error);
+                    return;
+                }
+                alert('用户状态更新成功');
+                loadUsers(currentPage.users);
+            })
+            .catch(error => {
+                console.error('更新用户状态失败:', error);
+                alert('更新用户状态失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 加载文章列表
+    // 加载文章列表
+    // 修改 loadArticles 函数，确保分类数据已加载
+    function loadArticles(page) {
+        console.log('加载文章列表，页码:', page);
+        hideError('articleError');
+        currentPage.articles = page;
+        const categoryId = document.getElementById('articleCategoryFilter').value;
+        const state = document.getElementById('articleStateFilter').value;
+
+        // 确保page参数有默认值
+        if (!page || page < 1) {
+            page = 1;
+        }
+
+        let url = `admin/articles?pageNum=${page}&pageSize=${pageSize}`;
+        if (categoryId) url += `&categoryId=${categoryId}`;
+        if (state) url += `&state=${state}`;
+
+        console.log('请求文章列表URL:', url);
+        console.log('当前用户角色:', currentUserRole);
+
+        // 确保分类数据已加载后再加载文章
+        if (categories.length === 0) {
+            // 如果分类数据未加载，先加载分类数据
+            loadCategoriesForArticles(url);
+        } else {
+            // 分类数据已存在，直接加载文章
+            loadArticlesData(url);
+        }
+    }
+
+
+    // 为文章加载专门的分类加载函数
+    function loadCategoriesForArticles(articleUrl) {
+        axios.get('/admin/category', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    categories = response.data.data || [];
+                    // 加载完分类后加载文章
+                    loadArticlesData(articleUrl);
+                } else {
+                    // 即使分类加载失败，也尝试加载文章
+                    console.error('加载分类失败:', response.data.message);
+                    loadArticlesData(articleUrl);
+                }
+            })
+            .catch(error => {
+                console.error('加载分类失败:', error);
+                // 即使分类加载失败，也尝试加载文章
+                loadArticlesData(articleUrl);
+            });
+    }
+    // 实际加载文章数据的函数
+    function loadArticlesData(url) {
+        axios.get(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('文章列表响应:', response);
+                if (response.data.code !== 0) {
+                    showError('articleError', '加载文章列表失败: ' + response.data.message);
+                    return;
+                }
+
+                const data = response.data.data;
+                console.log('文章列表数据:', data);
+                // 使用 items 字段而不是 list 字段
+                renderArticles(data.items);
+                renderArticlePagination(data);
+            })
+            .catch(error => {
+                console.error('加载文章列表失败:', error);
+                showError('articleError', '加载文章列表失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 渲染文章列表
+    function renderArticles(articles) {
+        const tbody = document.getElementById('articleTableBody');
+        tbody.innerHTML = '';
+
+        console.log(articles);
+
+        if (!articles || articles.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">暂无文章数据</td></tr>';
+            return;
+        }
+
+        articles.forEach(article => {
+            // 查找分类名称
+            const category = categories.find(c => c.id === article.categoryId);
+            const categoryName = category ? category.categoryName : '未知分类';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${article.id}</td>
+                <td>${article.title}</td>
+                <td>${categoryName}</td>
+                <td>${article.state}</td>
+                <td>${article.createUser}</td>
+                <td>${formatDate(article.createTime)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteArticle(${article.id})">删除</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 删除文章
+    function deleteArticle(id) {
+        if (!confirm('确定要删除这篇文章吗？')) {
+            return;
+        }
+
+        // 发送删除请求到后端
+        axios.delete(`/admin/articles/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    alert('删除失败: ' + response.data.message);
+                    return;
+                }
+                alert('文章删除成功');
+                // 重新加载文章列表
+                loadArticles(currentPage.articles);
+            })
+            .catch(error => {
+                console.error('删除文章失败:', error);
+                alert('删除文章失败: ' + (error.response?.data?.message || '未知错误'));
+            });
+    }
+    // 渲染文章分页
+    function renderArticlePagination(data) {
+        const pagination = document.getElementById('articlePagination');
+        pagination.innerHTML = '';
+
+        // 使用 PageBean 的字段
+        const pageNum = data.pageNum || 1;
+        const pageSize = data.pageSize || 10;
+        const total = data.total || 0;
+        const pages = data.pages || 1;
+        const items = data.items || [];
+
+        const hasNextPage = data.hasNextPage !== undefined ? data.hasNextPage :
+            (items.length === pageSize && pageNum < pages);
+        const hasPreviousPage = data.hasPreviousPage !== undefined ? data.hasPreviousPage :
+            (pageNum > 1);
+
+        // 上一页
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${hasPreviousPage ? '' : 'disabled'}`;
+        prevItem.innerHTML = `<a class="page-link" href="#" onclick="loadArticles(${Math.max(1, pageNum - 1)})">上一页</a>`;
+        pagination.appendChild(prevItem);
+
+        // 页码
+        const startPage = Math.max(1, pageNum - 2);
+        const endPage = Math.min(pages, pageNum + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === pageNum ? 'active' : ''}`;
+            pageItem.innerHTML = `<a class="page-link" href="#" onclick="loadArticles(${i})">${i}</a>`;
+            pagination.appendChild(pageItem);
+        }
+
+        // 下一页
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${hasNextPage ? '' : 'disabled'}`;
+        nextItem.innerHTML = `<a class="page-link" href="#" onclick="loadArticles(${pageNum + 1})">下一页</a>`;
+        pagination.appendChild(nextItem);
+    }
+
+    // 添加文章
+    function addArticle() {
+        const formData = {
+            title: document.getElementById('articleTitle').value,
+            content: document.getElementById('articleContent').value,
+            coverImg: document.getElementById('articleCoverImg').value,
+            state: document.getElementById('articleState').value,
+            categoryId: parseInt(document.getElementById('articleCategoryId').value)
+        };
+
+        axios.post('/admin/articles', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    alert('添加失败: ' + response.data.message);
+                    return;
+                }
+                alert('文章添加成功');
+                document.getElementById('addArticleForm').reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addArticleModal'));
+                modal.hide();
+                loadArticles(currentPage.articles);
+            })
+            .catch(error => {
+                console.error('添加文章失败:', error);
+                alert('添加文章失败: ' + (error.response?.data || '未知错误'));
+            });
+    }
+
+
+
+    // 加载分类列表
+    function loadCategories() {
+        hideError('categoryError');
+        axios.get('/admin/category', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    showError('categoryError', '加载分类列表失败: ' + response.data.message);
+                    return;
+                }
+
+                categories = response.data.data || [];
+                renderCategories(categories);
+                renderCategoryOptions(categories);
+            })
+            .catch(error => {
+                console.error('加载分类列表失败:', error);
+                showError('categoryError', '加载分类列表失败: ' + (error.response?.data?.message || error.message));
+            });
+    }
+
+    // 渲染分类列表
+    function renderCategories(categories) {
+        const tbody = document.getElementById('categoryTableBody');
+        tbody.innerHTML = '';
+
+        if (!categories || categories.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">暂无分类数据</td></tr>';
+            return;
+        }
+
+        categories.forEach(category => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${category.id}</td>
+                    <td>${category.categoryName}</td>
+                    <td>${category.categoryAlias}</td>
+                    <td>${formatDate(category.createTime)}</td>
+                    <td>${formatDate(category.updateTime)}</td>
+                    <td>
+<!--                        <button class="btn btn-sm btn-outline-primary">编辑</button>-->
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${category.id})">删除</button>
+                    </td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 渲染分类选项
+    function renderCategoryOptions(categories) {
+        const select = document.getElementById('articleCategoryId');
+        const filterSelect = document.getElementById('articleCategoryFilter');
+
+        select.innerHTML = '';
+        filterSelect.innerHTML = '<option value="">所有分类</option>';
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.categoryName;
+            select.appendChild(option.cloneNode(true));
+            filterSelect.appendChild(option);
+        });
+    }
+
+    // 添加分类
+    function addCategory() {
+        const formData = {
+            categoryName: document.getElementById('categoryName').value,
+            categoryAlias: document.getElementById('categoryAlias').value
+        };
+
+        axios.post('/admin/category', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    alert('添加失败: ' + response.data.message);
+                    return;
+                }
+                alert('分类添加成功');
+                document.getElementById('addCategoryForm').reset();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addCategoryModal'));
+                modal.hide();
+                loadCategories();
+            })
+            .catch(error => {
+                console.error('添加分类失败:', error);
+                alert('添加分类失败: ' + (error.response?.data || '未知错误'));
+            });
+    }
+
+    // 删除分类
+    function deleteCategory(id) {
+        if (!confirm('确定要删除这个分类吗？')) {
+            return;
+        }
+
+        axios.delete(`/admin/category/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    // 根据错误信息给出具体提示
+                    if (response.data.message && response.data.message.includes("还有文章")) {
+                        alert('删除失败：该分类下还有文章，请先处理相关文章后再删除分类');
+                    } else {
+                        alert('删除失败: ' + response.data.message);
+                    }
+                    return;
+                }
+                alert('分类删除成功');
+                loadCategories();
+            })
+            .catch(error => {
+                console.error('删除分类失败:', error);
+                alert('删除分类失败: ' + (error.response?.data?.message || '未知错误'));
+            });
+    }
+    // 上传文件
+    function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files.length) {
+            alert('请选择要上传的文件');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        axios.post('/upload', formData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+            .then(response => {
+                if (response.data.code !== 0) {
+                    document.getElementById('uploadResult').innerHTML = `<div class="alert alert-danger">${response.data.message}</div>`;
+                    return;
+                }
+                document.getElementById('uploadResult').innerHTML = `
+                    <div class="alert alert-success">
+                        <p>文件上传成功！</p>
+                        <p>访问地址：${response.data.message.replace('url访问地址：', '')}</p>
+                    </div>
+                `;
+                fileInput.value = '';
+            })
+            .catch(error => {
+                console.error('文件上传失败:', error);
+                document.getElementById('uploadResult').innerHTML = `<div class="alert alert-danger">文件上传失败: ${error.response?.data || '未知错误'}</div>`;
+            });
+    }
+
+    // 显示错误信息
+    function showError(elementId, message) {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+        element.classList.remove('d-none');
+    }
+
+    // 隐藏错误信息
+    function hideError(elementId) {
+        const element = document.getElementById(elementId);
+        element.classList.add('d-none');
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+</script>
+</body>
+</html>
