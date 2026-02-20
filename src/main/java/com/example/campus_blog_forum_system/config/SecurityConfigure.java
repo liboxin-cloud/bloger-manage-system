@@ -60,7 +60,9 @@ public class SecurityConfigure implements WebMvcConfigurer {
                         "/js/**",
                         "/favicon.ico",
                         "/static/**",
-                        "/error");
+                        "/error",
+                        "forgot-password",
+                        "forgot-password/**");
 
     }
 

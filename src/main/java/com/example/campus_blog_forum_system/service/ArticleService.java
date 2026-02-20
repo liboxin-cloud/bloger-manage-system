@@ -15,11 +15,17 @@ public interface ArticleService
     public void deleteById(Integer id);
 
     //查找是否有分类id
+    public boolean update(Article article);
 
     List<Article> findByCategoryId(Integer categoryId);
 
 
     PageBean<Article> list(Integer pageNum, Integer pageSize, Integer categoryId, String state);
 
+    PageBean<Article> listByUserId(Integer userId, Integer pageNum, Integer pageSize, Integer categoryId, String state);
+
     List<Article> findByCreateUser(Integer userId);
+
+    public Article findById(Integer id);
+
 }

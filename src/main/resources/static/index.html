@@ -121,8 +121,8 @@
             <div class="d-flex align-items-center" id="userActions">
                 <!-- 未登录状态 -->
                 <div id="guestActions">
-                    <a href="login.vue" class="btn btn-outline-light me-2">登录</a>
-                    <a href="login.vue" class="btn btn-light">注册</a>
+                    <a href="login" class="btn btn-outline-light me-2">登录</a>
+                    <a href="register" class="btn btn-light">注册</a>
                 </div>
                 <!-- 登录状态 -->
                 <div id="userActionsLoggedIn" class="d-none">
@@ -133,7 +133,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>个人信息</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>我的文章</a></li>
+                            <li><a class="dropdown-item" href="/index/my-article"><i class="bi bi-file-earmark-text me-2"></i>我的文章</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
                         </ul>
@@ -278,6 +278,33 @@
         state: '已发布' // 默认只显示已发布的文章
     };
 
+    // 配置axios
+    axios.defaults.baseURL = window.location.origin;
+
+    // 请求拦截器 - 自动添加token
+    axios.interceptors.request.use(config => {
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    }, error => {
+        return Promise.reject(error);
+    });
+
+    // 响应拦截器 - 统一处理错误
+    axios.interceptors.response.use(response => {
+        return response;
+    }, error => {
+        if (error.response && error.response.status === 401) {
+            // token失效，清除登录状态
+            localStorage.removeItem('userToken');
+            token = null;
+            checkUserLogin();
+            alert('登录已过期，请重新登录');
+        }
+        return Promise.reject(error);
+    });
+
     // 页面加载完成后执行
     document.addEventListener('DOMContentLoaded', function() {
         // 初始化页面
@@ -316,6 +343,13 @@
 
             // 加载用户信息
             loadUserInfo();
+        } else {
+            // 显示未登录状态
+            document.getElementById('guestActions').classList.remove('d-none');
+            document.getElementById('userActionsLoggedIn').classList.add('d-none');
+
+            // 清空用户信息显示
+            document.getElementById('userInfoContent').innerHTML = '<p class="text-muted">请登录后查看个人信息</p>';
         }
     }
 
@@ -356,14 +390,108 @@
 
     // 加载用户信息
     function loadUserInfo() {
-        // 用户信息接口可能需要调整
-        // 这里暂时不实现，因为后端没有提供相关接口
+        if (!token) return;
+
+        console.log('正在加载用户信息...');
+
+        axios.get('/user/userInfo')
+            .then(response => {
+                console.log('用户信息响应:', response.data);
+
+                if (response.data.code === 0 && response.data.data) {
+                    const user = response.data.data;
+                    renderUserInfo(user);
+                } else {
+                    console.error('获取用户信息失败:', response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载用户信息失败:', error);
+            });
+    }
+
+    // 渲染用户信息
+    function renderUserInfo(user) {
+        if (!user) return;
+
+        const userInfoContent = document.getElementById('userInfoContent');
+
+        // 处理用户头像
+        const avatarUrl = user.userPic || 'https://via.placeholder.com/80';
+
+        // 处理昵称
+        const nickname = user.nickname || user.username;
+
+        // 处理邮箱
+        const email = user.email || '未设置邮箱';
+
+        // 格式化加入时间
+        const joinDate = formatDate(user.createTime);
+
+        // 构建用户信息HTML
+        const userInfoHTML = `
+            <div class="text-center">
+                <img src="${avatarUrl}"
+                     class="rounded-circle mb-3"
+                     style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #667eea;"
+                     onerror="this.src='https://via.placeholder.com/80'">
+                <h6 class="fw-bold">${nickname}</h6>
+                <p class="text-muted small mb-2">
+                    <i class="bi bi-envelope me-1"></i>${email}
+                </p>
+                <div class="d-flex justify-content-around mt-3 pt-2 border-top">
+                    <div class="text-center">
+                        <strong class="d-block">0</strong>
+                        <span class="small text-muted">文章</span>
+                    </div>
+                    <div class="text-center">
+                        <strong class="d-block">0</strong>
+                        <span class="small text-muted">粉丝</span>
+                    </div>
+                    <div class="text-center">
+                        <strong class="d-block">0</strong>
+                        <span class="small text-muted">获赞</span>
+                    </div>
+                </div>
+                <div class="mt-3 text-start small text-muted">
+                    <i class="bi bi-calendar me-1"></i>加入时间: ${joinDate}
+                </div>
+            </div>
+        `;
+
+        userInfoContent.innerHTML = userInfoHTML;
+    }
+
+    // 格式化日期
+    function formatDate(dateStr) {
+        if (!dateStr) return '未知';
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\//g, '-');
+        } catch (e) {
+            return dateStr;
+        }
     }
 
     // 加载文章列表
-    // 加载文章列表
     function loadArticles(page) {
         currentPage = page;
+
+        // 显示加载中
+        const container = document.getElementById('articlesContainer');
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-2">加载文章中...</p>
+            </div>
+        `;
+
         let url = `/user/article?pageNum=${page}&pageSize=${pageSize}`;
 
         if (currentFilters.categoryId) {
@@ -374,25 +502,27 @@
             url += `&state=${currentFilters.state}`;
         }
 
-        // 添加认证头
-        axios.get(url, {
-            headers: {
-                'Authorization': token ? `Bearer ${token}` : ''
-            }
-        })
+        axios.get(url)
             .then(response => {
-                const data = response.data.data;
-                renderArticles(data.items);
-                renderPagination(data.total, page, pageSize);
+                if (response.data.code === 0 && response.data.data) {
+                    const data = response.data.data;
+                    renderArticles(data.items || []);
+                    renderPagination(data.total || 0, page, pageSize);
+                } else {
+                    renderArticles([]);
+                    renderPagination(0, page, pageSize);
+                }
             })
             .catch(error => {
                 console.error('加载文章失败:', error);
-                document.getElementById('articlesContainer').innerHTML = `
-                <div class="alert alert-danger">加载文章失败，请稍后重试</div>
-            `;
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        加载文章失败，请稍后重试
+                    </div>
+                `;
             });
     }
-
 
     // 渲染文章列表
     function renderArticles(articles) {
@@ -400,12 +530,12 @@
 
         if (!articles || articles.length === 0) {
             container.innerHTML = `
-                    <div class="no-articles">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <h4>暂无文章</h4>
-                        <p>当前没有符合条件的文章</p>
-                    </div>
-                `;
+                <div class="no-articles">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <h4>暂无文章</h4>
+                    <p>当前没有符合条件的文章</p>
+                </div>
+            `;
             return;
         }
 
@@ -416,57 +546,83 @@
             const category = categories.find(c => c.id === article.categoryId);
             const categoryName = category ? category.categoryName : '未知分类';
 
+            // 处理封面图
+            const coverImg = article.coverImg || 'https://via.placeholder.com/300x200';
+
             const articleElement = document.createElement('div');
             articleElement.className = 'card article-card';
             articleElement.innerHTML = `
-                    <div class="row g-0">
-                        <div class="col-md-4">
-                            <img src="${article.coverImg}" class="img-fluid article-cover" alt="${article.title}">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body h-100 d-flex flex-column">
-                                <h5 class="card-title">${article.title}</h5>
-                                <p class="card-text flex-grow-1">${article.content.substring(0, 100)}...</p>
-                                <div class="d-flex justify-content-between align-items-center mt-auto">
-                                    <div>
-                                        <span class="category-badge me-2">${categoryName}</span>
-                                        <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">${article.state}</span>
-                                    </div>
-                                    <div class="article-meta">
-                                        <small>
-                                            <i class="bi bi-calendar me-1"></i>${new Date(article.createTime).toLocaleDateString()}
-                                        </small>
-                                    </div>
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="${coverImg}"
+                             class="img-fluid article-cover"
+                             alt="${article.title || '文章封面'}"
+                             onerror="this.src='https://via.placeholder.com/300x200'">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body h-100 d-flex flex-column">
+                            <h5 class="card-title">
+                                <a href="#" class="text-decoration-none text-dark"
+                                   onclick="viewArticle(${article.id}); return false;">
+                                    ${article.title || '无标题'}
+                                </a>
+                            </h5>
+                            <p class="card-text flex-grow-1">${article.content ? article.content.substring(0, 100) + '...' : '暂无内容'}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div>
+                                    <span class="category-badge me-2">${categoryName}</span>
+                                    ${article.state ? `
+                                        <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">
+                                            ${article.state}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                <div class="article-meta">
+                                    <small>
+                                        <i class="bi bi-calendar me-1"></i>
+                                        ${formatDate(article.createTime)}
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
             container.appendChild(articleElement);
         });
+    }
+
+    // 查看文章详情
+    function viewArticle(articleId) {
+        // 这里可以跳转到文章详情页
+        console.log('查看文章:', articleId);
+        // window.location.href = `/article/${articleId}`;
     }
 
     // 渲染分页
     function renderPagination(total, currentPage, pageSize) {
         const totalPages = Math.ceil(total / pageSize);
         const pagination = document.getElementById('pagination');
+        const paginationContainer = document.getElementById('paginationContainer');
+
         pagination.innerHTML = '';
 
         if (totalPages <= 1) {
-            document.getElementById('paginationContainer').classList.add('d-none');
+            paginationContainer.classList.add('d-none');
             return;
         }
 
-        document.getElementById('paginationContainer').classList.remove('d-none');
+        paginationContainer.classList.remove('d-none');
 
         // 上一页
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
         prevItem.innerHTML = `
-                <a class="page-link" href="#" ${currentPage !== 1 ? `onclick="loadArticles(${currentPage - 1})"` : ''}>
-                    <i class="bi bi-chevron-left"></i>
-                </a>
-            `;
+            <a class="page-link" href="#"
+               ${currentPage !== 1 ? `onclick="loadArticles(${currentPage - 1}); return false;"` : ''}>
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        `;
         pagination.appendChild(prevItem);
 
         // 页码
@@ -477,8 +633,8 @@
             const pageItem = document.createElement('li');
             pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
             pageItem.innerHTML = `
-                    <a class="page-link" href="#" onclick="loadArticles(${i})">${i}</a>
-                `;
+                <a class="page-link" href="#" onclick="loadArticles(${i}); return false;">${i}</a>
+            `;
             pagination.appendChild(pageItem);
         }
 
@@ -486,31 +642,35 @@
         const nextItem = document.createElement('li');
         nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
         nextItem.innerHTML = `
-                <a class="page-link" href="#" ${currentPage !== totalPages ? `onclick="loadArticles(${currentPage + 1})"` : ''}>
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-            `;
+            <a class="page-link" href="#"
+               ${currentPage !== totalPages ? `onclick="loadArticles(${currentPage + 1}); return false;"` : ''}>
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        `;
         pagination.appendChild(nextItem);
     }
 
     // 加载分类列表
-    // 加载分类列表
     function loadCategories() {
-        axios.get('/user/category', {
-            headers: {
-                'Authorization': token ? `Bearer ${token}` : ''
-            }
-        })
+        axios.get('/user/category')
             .then(response => {
-                categories = response.data.data || [];
+                console.log('分类响应:', response.data);
+
+                if (response.data.code === 0) {
+                    categories = response.data.data || [];
+                } else {
+                    categories = [];
+                }
                 renderCategories(categories);
                 renderCategoryFilter(categories);
             })
             .catch(error => {
                 console.error('加载分类失败:', error);
+                categories = [];
+                renderCategories([]);
+                renderCategoryFilter([]);
             });
     }
-
 
     // 渲染分类列表
     function renderCategories(categories) {
@@ -518,10 +678,10 @@
 
         // 保留"全部分类"选项
         container.innerHTML = `
-                <a href="#" class="list-group-item list-group-item-action active" data-id="">
-                    全部分类
-                </a>
-            `;
+            <a href="#" class="list-group-item list-group-item-action active" data-id="">
+                全部分类
+            </a>
+        `;
 
         categories.forEach(category => {
             const categoryElement = document.createElement('a');
@@ -546,6 +706,24 @@
             option.textContent = category.categoryName;
             select.appendChild(option);
         });
+    }
+
+    // 加载热门文章
+    function loadHotArticles() {
+        currentFilters.state = '已发布';
+        currentFilters.categoryId = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('stateFilter').value = '已发布';
+        document.querySelectorAll('.category-list .list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector('.category-list .list-group-item:first-child').classList.add('active');
+        loadArticles(1);
+    }
+
+    // 加载最新文章
+    function loadLatestArticles() {
+        loadHotArticles();
     }
 </script>
 </body>

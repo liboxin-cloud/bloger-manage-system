@@ -106,7 +106,17 @@ public class JwtInterceptor implements HandlerInterceptor {
                 "/login",
                 "/admin",
                 "/index",
-                "/captcha/generate"
+                "/captcha/generate",
+                "/register",
+                "/index/my-article",
+                "/my-article",
+                "/homepage",
+                "/index/homepage",
+                "/forgot-password",
+                "/forgot-password/verify-account",
+                "/forgot-password/reset",
+                "/forgot-password/verify-code",
+                "/forgot-password/resend-code"
         };
         // 检查是否是静态资源（但排除.html文件）
         if (requestURI.endsWith(".html")) {

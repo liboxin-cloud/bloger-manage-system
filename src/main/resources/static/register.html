@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary {
+            background-color: #6a11cb;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #2575fc;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-4">
+                <h3 class="text-center mb-4">用户注册</h3>
+                <form id="registerForm" action="/user/register" method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" required>
+                        <div class="error-message" id="usernameError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">确认密码</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="请再次输入密码" required>
+                        <div class="error-message" id="confirmPasswordError"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">注册</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 引入 Bootstrap JS 和依赖 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // 阻止默认表单提交行为
+
+        let isValid = true;
+
+        // 清除之前的错误信息
+        document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+        // 获取表单字段值
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        // 用户名校验（5-16位非空字符）
+        if (!/^\S{5,16}$/.test(username)) {
+            document.getElementById('usernameError').textContent = '用户名必须为5-16位非空字符';
+            isValid = false;
+        }
+
+        // 密码校验（5-16位非空字符）
+        if (!/^\S{5,16}$/.test(password)) {
+            document.getElementById('passwordError').textContent = '密码必须为5-16位非空字符';
+            isValid = false;
+        }
+
+        // 确认密码校验
+        if (password !== confirmPassword) {
+            document.getElementById('confirmPasswordError').textContent = '两次输入的密码不一致';
+            isValid = false;
+        }
+
+        // 如果校验失败，阻止表单提交
+        if (!isValid) {
+            return;
+        }
+
+        // 使用 fetch 异步提交表单数据
+        fetch('/user/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'username': username,
+                'password': password
+            })
+        })
+            .then(response => response.json()) // 解析 JSON 响应
+            .then(data => {
+                if (data.code === 1) {
+                    // 注册失败，直接显示错误信息
+                    document.getElementById('usernameError').textContent = data.message;
+                } else if (data.code === 0) {
+                    // 注册成功，重定向到登录页面
+                    window.location.href = '/login';
+                }
+            })
+            .catch(error => {
+                console.error('请求失败:', error);
+                // 移除 alert，改为在页面上显示通用错误信息
+                document.getElementById('usernameError').textContent = '网络错误，请稍后再试！';
+            });
+    });
+
+</script>
+</body>
+</html>

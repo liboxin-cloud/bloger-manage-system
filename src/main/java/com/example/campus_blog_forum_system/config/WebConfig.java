@@ -25,7 +25,13 @@ public class WebConfig implements WebMvcConfigurer {
                         "/static/**",
                         "/login",
                         "/admin",
-                        "/index");
+                        "/index",
+                        "/index/my-article",  // 添加这一行
+                        "/my-articles",
+                        "/index/homepage",
+                        "/homepage",
+                        "/forgot-password",
+                        "/forgot-password/**");       // 如果直接访问my-articles.html也需要放行);
     }
 
     @Override
@@ -41,5 +47,12 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/login").setViewName("forward:/static/login.html");
         registry.addViewController("/admin").setViewName("forward:/static/admin.html");
         registry.addViewController("/index").setViewName("forward:/static/index.html");
+        registry.addViewController("/index/homepage").setViewName("forward:/static/index.html");
+        registry.addViewController("/homepage").setViewName("forward:/static/index.html");
+        registry.addViewController("/register").setViewName("forward:/static/register.html");
+        registry.addViewController("/index/my-article").setViewName("forward:/static/my-article.html");
+        registry.addViewController("/my-articles").setViewName("forward:/static/my-article.html");
+        registry.addViewController("/forgot-password").setViewName("forward:/static/forgot-password.html");
+
     }
 }

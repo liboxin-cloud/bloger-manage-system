@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的文章 - 校园论坛</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .article-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .article-cover {
+            height: 200px;
+            object-fit: cover;
+        }
+        .category-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .article-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .article-state {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .state-published {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .state-draft {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .no-articles {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .no-articles i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        .action-buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+        }
+        .article-card:hover .action-buttons {
+            display: block;
+        }
+        .action-buttons .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index">
+            <i class="bi bi-chat-square-text me-2"></i>校园论坛
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="homepage">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="publish">发布文章</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="my-article">我的文章</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center" id="userActions">
+                <!-- 未登录状态 -->
+                <div id="guestActions">
+                    <a href="login" class="btn btn-outline-light me-2">登录</a>
+                    <a href="register" class="btn btn-light">注册</a>
+                </div>
+                <!-- 登录状态 -->
+                <div id="userActionsLoggedIn" class="d-none">
+                    <span class="text-white me-3" id="welcomeUser"></span>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>个人中心
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="user-info"><i class="bi bi-person me-2"></i>个人信息</a></li>
+                            <li><a class="dropdown-item" href="my-article"><i class="bi bi-file-earmark-text me-2"></i>我的文章</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 主要内容 -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4"><i class="bi bi-file-earmark-text me-2"></i>我的文章</h3>
+
+            <!-- 筛选栏 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">所有分类</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="stateFilter">
+                                <option value="">所有状态</option>
+                                <option value="已发布">已发布</option>
+                                <option value="草稿">草稿</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" id="filterBtn">筛选</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文章列表 -->
+            <div id="articlesContainer">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2">加载文章中...</p>
+                </div>
+            </div>
+
+            <!-- 分页 -->
+            <nav aria-label="文章分页" id="paginationContainer">
+                <ul class="pagination justify-content-center" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="bi bi-chat-square-text me-2"></i>校园论坛</h5>
+                <p>一个专为校园用户打造的交流平台，分享知识、经验和生活。</p>
+            </div>
+            <div class="col-md-3">
+                <h5>链接</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white text-decoration-none">关于我们</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">联系我们</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">帮助中心</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>关注我们</h5>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-white"><i class="bi bi-wechat"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-weibo"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="text-center">
+            <p class="mb-0">&copy; 2023 校园论坛. 保留所有权利.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 全局变量
+    let token = localStorage.getItem('userToken');
+    let currentPage = 1;
+    const pageSize = 5;
+    let categories = [];
+    let currentFilters = {
+        categoryId: '',
+        state: ''
+    };
+
+    // 配置axios
+    axios.defaults.baseURL = window.location.origin;
+
+    // 请求拦截器
+    axios.interceptors.request.use(config => {
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    });
+
+    // 响应拦截器
+    axios.interceptors.response.use(response => response, error => {
+        if (error.response && error.response.status === 401) {
+            alert('请先登录');
+            window.location.href = 'login';
+        }
+        return Promise.reject(error);
+    });
+
+    // 页面加载
+    document.addEventListener('DOMContentLoaded', function() {
+        checkLogin();
+        loadCategories();
+        loadMyArticles(1);
+        bindEvents();
+    });
+
+    // 检查登录
+    function checkLogin() {
+        if (!token) {
+            alert('请先登录');
+            window.location.href = 'login';
+            return;
+        }
+
+        document.getElementById('guestActions').classList.add('d-none');
+        document.getElementById('userActionsLoggedIn').classList.remove('d-none');
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById('welcomeUser').textContent = `欢迎, ${payload.username}`;
+        } catch (e) {
+            console.error('解析token失败:', e);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('userToken');
+        window.location.href = '/login';
+    }
+
+    // 绑定事件
+    function bindEvents() {
+        document.getElementById('filterBtn').addEventListener('click', function() {
+            currentFilters.categoryId = document.getElementById('categoryFilter').value;
+            currentFilters.state = document.getElementById('stateFilter').value;
+            loadMyArticles(1);
+        });
+    }
+
+    // 加载我的文章
+    function loadMyArticles(page) {
+        currentPage = page;
+
+        let url = `/article/my?pageNum=${page}&pageSize=${pageSize}`;
+
+        if (currentFilters.categoryId) {
+            url += `&categoryId=${currentFilters.categoryId}`;
+        }
+        if (currentFilters.state) {
+            url += `&state=${currentFilters.state}`;
+        }
+
+        axios.get(url)
+            .then(response => {
+                if (response.data.code === 0 && response.data.data) {
+                    const data = response.data.data;
+                    renderArticles(data.items || []);
+                    renderPagination(data.total || 0, page, pageSize);
+                }
+            })
+            .catch(error => {
+                console.error('加载文章失败:', error);
+                document.getElementById('articlesContainer').innerHTML = `
+                    <div class="alert alert-danger">加载失败，请稍后重试</div>
+                `;
+            });
+    }
+
+    // 渲染文章
+    function renderArticles(articles) {
+        const container = document.getElementById('articlesContainer');
+
+        if (!articles || articles.length === 0) {
+            container.innerHTML = `
+                <div class="no-articles">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <h4>暂无文章</h4>
+                    <p>你还没有发布任何文章</p>
+                    <a href="publish" class="btn btn-primary mt-3">
+                        <i class="bi bi-pencil-square me-2"></i>发布第一篇文章
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        articles.forEach(article => {
+            const category = categories.find(c => c.id === article.categoryId);
+            const categoryName = category ? category.categoryName : '未知分类';
+            const coverImg = article.coverImg || 'https://via.placeholder.com/300x200';
+
+            const articleElement = document.createElement('div');
+            articleElement.className = 'card article-card position-relative';
+            articleElement.innerHTML = `
+                <div class="action-buttons">
+                    <button class="btn btn-sm btn-primary" onclick="editArticle(${article.id})">
+                        <i class="bi bi-pencil"></i> 编辑
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteArticle(${article.id})">
+                        <i class="bi bi-trash"></i> 删除
+                    </button>
+                </div>
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="${coverImg}" class="img-fluid article-cover" alt="${article.title}"
+                             onerror="this.src='https://via.placeholder.com/300x200'">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">${article.title}</h5>
+                            <p class="card-text">${article.content ? article.content.substring(0, 100) + '...' : '暂无内容'}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="category-badge me-2">${categoryName}</span>
+                                    <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">
+                                        ${article.state}
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>${formatDate(article.createTime)}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(articleElement);
+        });
+    }
+
+    // 编辑文章
+    function editArticle(id) {
+        window.location.href = `edit-article.html?id=${id}`;
+    }
+
+    // 删除文章
+    function deleteArticle(id) {
+        if (confirm('确定要删除这篇文章吗？')) {
+            axios.delete(`/user/articles/${id}`)
+                .then(response => {
+                    if (response.data.code === 0) {
+                        alert('删除成功');
+                        loadMyArticles(currentPage);
+                    } else {
+                        alert('删除失败：' + response.data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('删除失败:', error);
+                    alert('删除失败，请稍后重试');
+                });
+        }
+    }
+
+    // 加载分类
+    function loadCategories() {
+        axios.get('/user/category')
+            .then(response => {
+                if (response.data.code === 0) {
+                    categories = response.data.data || [];
+                    renderCategoryFilter(categories);
+                }
+            })
+            .catch(error => console.error('加载分类失败:', error));
+    }
+
+    // 渲染分类筛选
+    function renderCategoryFilter(categories) {
+        const select = document.getElementById('categoryFilter');
+        select.innerHTML = '<option value="">所有分类</option>';
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.categoryName;
+            select.appendChild(option);
+        });
+    }
+
+    // 渲染分页
+    function renderPagination(total, currentPage, pageSize) {
+        const totalPages = Math.ceil(total / pageSize);
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (totalPages <= 1) {
+            document.getElementById('paginationContainer').classList.add('d-none');
+            return;
+        }
+
+        document.getElementById('paginationContainer').classList.remove('d-none');
+
+        // 上一页
+        const prevItem = document.createElement('li');
+        prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevItem.innerHTML = `
+            <a class="page-link" href="#"
+               ${currentPage !== 1 ? `onclick="loadMyArticles(${currentPage - 1}); return false;"` : ''}>
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        `;
+        pagination.appendChild(prevItem);
+
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                const pageItem = document.createElement('li');
+                pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageItem.innerHTML = `
+                    <a class="page-link" href="#" onclick="loadMyArticles(${i}); return false;">${i}</a>
+                `;
+                pagination.appendChild(pageItem);
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                const pageItem = document.createElement('li');
+                pageItem.className = 'page-item disabled';
+                pageItem.innerHTML = `<a class="page-link" href="#">...</a>`;
+                pagination.appendChild(pageItem);
+            }
+        }
+
+        // 下一页
+        const nextItem = document.createElement('li');
+        nextItem.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextItem.innerHTML = `
+            <a class="page-link" href="#"
+               ${currentPage !== totalPages ? `onclick="loadMyArticles(${currentPage + 1}); return false;"` : ''}>
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        `;
+        pagination.appendChild(nextItem);
+    }
+
+    // 格式化日期
+    function formatDate(dateStr) {
+        if (!dateStr) return '未知';
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN');
+        } catch (e) {
+            return dateStr;
+        }
+    }
+</script>
+</body>
+</html>

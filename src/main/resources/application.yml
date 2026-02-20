@@ -8,6 +8,21 @@ spring:
     redis:
       host: localhost
       port: 6379
+  mail:
+    host: smtp.qq.com                    # 邮件服务器（QQ邮箱）
+    port: 587                             # 端口
+    username: 3551839250@qq.com           # 你的邮箱
+    password: wzyjapbffcrzchic     # 邮箱授权码，不是登录密码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.qq.com
+    default-encoding: UTF-8
+    protocol: smtp
 
 mybatis:
   type-aliases-package: com.example.campus_blog_forum_system.pojo
@@ -24,4 +39,13 @@ admin:
     max-file-size: 10MB
     allowed-extensions: jpg,png,pdf,docx
 
+
+# 忘记密码配置（新增）
+forgot-password:
+  code:
+    expire-time: 5      # 验证码过期时间（分钟）
+    length: 6           # 验证码长度
+  email:
+    from: your-email@qq.com
+    subject: 校园论坛 - 密码重置验证码
 

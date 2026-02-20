@@ -60,4 +60,11 @@ public interface AdminMapper
     @Update("UPDATE admin_user SET password = #{password}, update_time = #{updateTime} WHERE id = #{id}")
     void updatePassword(AdminUser adminUser);
 
+
+    @Select("SELECT * FROM admin_user WHERE email = #{email}")
+    AdminUser findByEmail(@Param("email") String email);
+
+    @Update("UPDATE admin_user SET password = #{password} WHERE id = #{id}")
+    void updatePasswordById(@Param("id") Integer id, @Param("password") String password);
+
 }

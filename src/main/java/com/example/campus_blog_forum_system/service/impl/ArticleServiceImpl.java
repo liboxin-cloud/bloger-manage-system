@@ -84,14 +84,15 @@ public class ArticleServiceImpl implements ArticleService
 
         System.out.println("当前用户ID: " + userId);
         System.out.println("是否是管理员: " + isAdmin);
-
+//
         List<Article> articles;
         if (isAdmin) {
+
             // 管理员可以查看所有文章
             articles = articleMapper.listAll(categoryId, state);
         } else if (userId != null && !userId.isEmpty()) {
             // 普通用户只查看自己的文章
-            articles = articleMapper.list(userId, categoryId, state);
+            articles = articleMapper.listAll(categoryId, state);
         } else {
             // 没有用户信息，返回空列表
             System.out.println("警告：用户ID为空，且不是管理员，无法查询文章");
@@ -134,4 +135,54 @@ public class ArticleServiceImpl implements ArticleService
     {
         return articleMapper.findByCreateUser(userId);
     }
+
+    @Override
+    public boolean update(Article article) {
+        if (article != null) {
+            article.setUpdateTime(LocalDateTime.now());
+            articleMapper.update(article);
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public PageBean<Article> listByUserId(Integer userId, Integer pageNum, Integer pageSize, Integer categoryId, String state) {
+        // 参数验证
+        if (pageNum == null || pageNum < 1) pageNum = 1;
+        if (pageSize == null || pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+
+        // 开启分页
+        PageHelper.startPage(pageNum, pageSize);
+
+        // 查询当前用户的文章
+        List<Article> articles = articleMapper.listByUserId(userId, categoryId, state);
+
+        // 使用PageInfo包装结果
+        PageInfo<Article> pageInfo = new PageInfo<>(articles);
+
+        // 创建并填充PageBean对象
+        PageBean<Article> pb = new PageBean<>();
+        pb.setTotal(pageInfo.getTotal());
+        pb.setPageNum(pageInfo.getPageNum());
+        pb.setPageSize(pageInfo.getPageSize());
+        pb.setPages(pageInfo.getPages());
+        pb.setItems(pageInfo.getList());
+        pb.setHasNextPage(pageInfo.isHasNextPage());
+        pb.setHasPreviousPage(pageInfo.isHasPreviousPage());
+
+        return pb;
+    }
+
+    @Override
+    public Article findById(Integer id) {
+        Article article = articleMapper.findById(id);
+        return article;
+    }
 }
+
+
+
+

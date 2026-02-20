@@ -38,4 +38,7 @@ public interface UserMapper
 
     @Select("SELECT * FROM user ORDER BY create_time DESC")
     List<User> selectAll();
+
+    @Select("SELECT * FROM user WHERE email = #{email}")
+    User findByEmail(@Param("email") String email);
 }

@@ -131,6 +131,7 @@
 
 
 
+
     </style>
 </head>
 <body>
@@ -181,14 +182,26 @@
                 </div>
 
 
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe">
-                    <label class="form-check-label" for="rememberMe">记住我</label>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">记住我</label>
+                    </div>
+                    <a href="/register" class="text-decoration-none" style="color: #6c757d;">
+                        <i class="bi bi-person-plus me-1"></i>转到注册
+                    </a>
                 </div>
+
                 <button type="submit" class="btn btn-login w-100" id="loginBtn">
                     <span id="loginText">登录</span>
                     <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
                 </button>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <a href="/forgot-password" class="text-decoration-none" style="color: #6c757d; font-size: 0.85rem;">
+                        <i class="bi bi-question-circle me-1"></i>忘记密码？
+                    </a>
+                </div>
             </form>
         </div>
         <div class="login-footer">
