@@ -176,4 +176,19 @@ public class ArticleController
         }
     }
 
+    // 获取热门文章列表（热度 > 5）
+    @GetMapping("/hot")
+    public Result<PageBean<Article>> getHotArticles(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Integer categoryId) {
+        try {
+            PageBean<Article> pageBean = articleService.findHotArticles(pageNum, pageSize, categoryId);
+            return Result.successWithData(pageBean);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result<>();
+        }
+    }
+
 }

@@ -42,7 +42,8 @@ public class UserController
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Void> register(
             @RequestParam @Pattern(regexp = "^\\S{5,16}$")String username,
-            @RequestParam @Pattern(regexp = "^\\S{5,16}$")String password)
+            @RequestParam @Pattern(regexp = "^\\S{5,16}$")String password,
+            @RequestParam @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") String email)
     {  // JSON格式参数
 
         // 参数验证
@@ -55,13 +56,22 @@ public class UserController
         {
             Result.error("密码不能为空");
         }
+
+        if(email == null || email.trim().isEmpty()) {
+            return Result.error("邮箱不能为空");
+        }
+
         if(userService.findUserByName(username) != null)
         {
             return Result.error("用户名已存在");
+        }
 
+        //在添加一个findUserByEmail的方法，判断邮箱是否已存在
+        if (userService.findUserByEmail(email) != null) {
+            return Result.error("邮箱已存在");
         }
         // 注册用户
-        userService.register(username, password);
+        userService.register(username, password, email);
         return Result.success();
     }
     @RequestMapping("/login")

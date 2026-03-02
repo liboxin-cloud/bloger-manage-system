@@ -6,55 +6,175 @@
     <title>用户注册</title>
     <!-- 引入 Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 添加字体图标用于更好的视觉效果 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         .card {
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
         }
         .btn-primary {
             background-color: #6a11cb;
             border: none;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
         .btn-primary:hover {
             background-color: #2575fc;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.3);
         }
         .error-message {
-            color: red;
+            color: #dc3545;
             font-size: 0.875em;
             margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .error-message i {
+            font-size: 1em;
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+        }
+        .form-control {
+            border-left: none;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #dee2e6;
+        }
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
+            border-radius: 0.375rem;
+        }
+        .input-group:focus-within .input-group-text {
+            border-color: #86b7fe;
+        }
+        .input-group:focus-within .form-control {
+            border-color: #86b7fe;
+        }
+        .text-muted {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .login-link a {
+            color: #6a11cb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-link a:hover {
+            color: #2575fc;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-5">
             <div class="card p-4">
-                <h3 class="text-center mb-4">用户注册</h3>
+                <h3 class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill me-2" style="color: #6a11cb;"></i>
+                    用户注册
+                </h3>
+
                 <form id="registerForm" action="/user/register" method="POST">
+                    <!-- 用户名输入 -->
                     <div class="mb-3">
-                        <label for="username" class="form-label">用户名</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" required>
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person me-1"></i>用户名
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person-circle"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   placeholder="请输入用户名" required maxlength="16">
+                        </div>
                         <div class="error-message" id="usernameError"></div>
+                        <div class="text-muted">5-16位，不能包含空格</div>
                     </div>
+
+                    <!-- 邮箱输入（新增） -->
                     <div class="mb-3">
-                        <label for="password" class="form-label">密码</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope me-1"></i>电子邮箱
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope-fill"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   placeholder="请输入电子邮箱" required>
+                        </div>
+                        <div class="error-message" id="emailError"></div>
+                        <div class="text-muted">用于密码找回和接收通知</div>
+                    </div>
+
+                    <!-- 密码输入 -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock me-1"></i>密码
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="请输入密码" required maxlength="16">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         <div class="error-message" id="passwordError"></div>
+                        <div class="text-muted">5-16位，不能包含空格</div>
                     </div>
+
+                    <!-- 确认密码输入 -->
                     <div class="mb-3">
-                        <label for="confirm_password" class="form-label">确认密码</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="请再次输入密码" required>
+                        <label for="confirm_password" class="form-label">
+                            <i class="bi bi-lock me-1"></i>确认密码
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
+                            <input type="password" class="form-control" id="confirm_password"
+                                   name="confirm_password" placeholder="请再次输入密码" required maxlength="16">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         <div class="error-message" id="confirmPasswordError"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">注册</button>
+
+                    <!-- 提交按钮 -->
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle me-2"></i>注册
+                    </button>
+
+                    <!-- 登录链接 -->
+                    <div class="login-link">
+                        已有账号？ <a href="/login">立即登录</a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -74,24 +194,32 @@
 
         // 获取表单字段值
         const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim(); // 新增邮箱
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm_password').value;
 
         // 用户名校验（5-16位非空字符）
         if (!/^\S{5,16}$/.test(username)) {
-            document.getElementById('usernameError').textContent = '用户名必须为5-16位非空字符';
+            document.getElementById('usernameError').innerHTML = '<i class="bi bi-exclamation-circle"></i> 用户名必须为5-16位非空字符';
+            isValid = false;
+        }
+
+        // 邮箱校验（新增）
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            document.getElementById('emailError').innerHTML = '<i class="bi bi-exclamation-circle"></i> 请输入有效的电子邮箱';
             isValid = false;
         }
 
         // 密码校验（5-16位非空字符）
         if (!/^\S{5,16}$/.test(password)) {
-            document.getElementById('passwordError').textContent = '密码必须为5-16位非空字符';
+            document.getElementById('passwordError').innerHTML = '<i class="bi bi-exclamation-circle"></i> 密码必须为5-16位非空字符';
             isValid = false;
         }
 
         // 确认密码校验
         if (password !== confirmPassword) {
-            document.getElementById('confirmPasswordError').textContent = '两次输入的密码不一致';
+            document.getElementById('confirmPasswordError').innerHTML = '<i class="bi bi-exclamation-circle"></i> 两次输入的密码不一致';
             isValid = false;
         }
 
@@ -99,6 +227,12 @@
         if (!isValid) {
             return;
         }
+
+        // 显示加载状态
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> 注册中...';
+        submitBtn.disabled = true;
 
         // 使用 fetch 异步提交表单数据
         fetch('/user/register', {
@@ -108,14 +242,29 @@
             },
             body: new URLSearchParams({
                 'username': username,
+                'email': email,  // 新增邮箱字段
                 'password': password
             })
         })
-            .then(response => response.json()) // 解析 JSON 响应
+            .then(response => response.json())
             .then(data => {
                 if (data.code === 1) {
-                    // 注册失败，直接显示错误信息
-                    document.getElementById('usernameError').textContent = data.message;
+                    // 注册失败，根据错误信息判断显示位置
+                    const errorMessage = data.message;
+
+                    if (errorMessage.includes('用户名')) {
+                        // 用户名相关的错误
+                        document.getElementById('usernameError').innerHTML = '<i class="bi bi-exclamation-circle"></i> ' + errorMessage;
+                    } else if (errorMessage.includes('邮箱')) {
+                        // 邮箱相关的错误
+                        document.getElementById('emailError').innerHTML = '<i class="bi bi-exclamation-circle"></i> ' + errorMessage;
+                    } else if (errorMessage.includes('密码')) {
+                        // 密码相关的错误
+                        document.getElementById('passwordError').innerHTML = '<i class="bi bi-exclamation-circle"></i> ' + errorMessage;
+                    } else {
+                        // 其他错误默认显示在用户名位置
+                        document.getElementById('usernameError').innerHTML = '<i class="bi bi-exclamation-circle"></i> ' + errorMessage;
+                    }
                 } else if (data.code === 0) {
                     // 注册成功，重定向到登录页面
                     window.location.href = '/login';
@@ -123,11 +272,68 @@
             })
             .catch(error => {
                 console.error('请求失败:', error);
-                // 移除 alert，改为在页面上显示通用错误信息
-                document.getElementById('usernameError').textContent = '网络错误，请稍后再试！';
+                document.getElementById('usernameError').innerHTML = '<i class="bi bi-exclamation-circle"></i> 网络错误，请稍后再试！';
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             });
     });
 
+    // 密码显示/隐藏切换
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+
+    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+        const confirmInput = document.getElementById('confirm_password');
+        const icon = this.querySelector('i');
+        if (confirmInput.type === 'password') {
+            confirmInput.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            confirmInput.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    });
+
+    // 实时邮箱格式检查（可选）
+    document.getElementById('email').addEventListener('input', function() {
+        const email = this.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailError = document.getElementById('emailError');
+
+        if (email && !emailRegex.test(email)) {
+            emailError.innerHTML = '<i class="bi bi-exclamation-circle"></i> 邮箱格式不正确';
+        } else {
+            emailError.innerHTML = '';
+        }
+    });
+
+    // 实时密码强度检查（可选）
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const passwordError = document.getElementById('passwordError');
+
+        if (password && (password.length < 5 || password.length > 16 || /\s/.test(password))) {
+            passwordError.innerHTML = '<i class="bi bi-exclamation-circle"></i> 密码必须为5-16位，不能包含空格';
+        } else {
+            passwordError.innerHTML = '';
+        }
+    });
 </script>
 </body>
 </html>

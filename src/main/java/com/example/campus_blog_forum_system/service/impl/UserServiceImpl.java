@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService
         return userMapper.getPassword(username);
     }
 
-    public void register(String username, String password)
+    public void register(String username, String password, String email)
     {
         //判断用户名是不是为空
         if(username == null || username.trim().isEmpty())
@@ -49,10 +49,14 @@ public class UserServiceImpl implements UserService
         {
             throw new IllegalArgumentException("密码不能为空");
         }
+
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("邮箱不能为空");
+        }
         //进行密码加密
         String hashedPwd = passwordEncoder.encode(password);
         //添加新的用户信息
-        userMapper.add(username, hashedPwd);
+        userMapper.add(username, hashedPwd, email);
     }
 
     @Override
@@ -131,4 +135,9 @@ public class UserServiceImpl implements UserService
 
     }
 
+    @Override
+    public  User findUserByEmail(String email)
+    {
+        return userMapper.findByEmail(email);
+    }
 }

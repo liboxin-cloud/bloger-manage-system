@@ -83,4 +83,37 @@ public interface ArticleMapper
 
     @Select("SELECT * FROM article WHERE id = #{id}")
     Article findById(Integer id);
+
+    // 查询热门文章（热度 > 5）
+    @Select("SELECT * FROM article WHERE state = '已发布' AND popularity > 5 ORDER BY popularity DESC, create_time DESC")
+    List<Article> findHotArticles();
+
+    // 带分类筛选的热门文章
+    @Select("""
+    <script>
+    SELECT * FROM article 
+    WHERE state = '已发布' 
+    AND popularity > 5
+    <if test='categoryId != null'>
+        AND category_id = #{categoryId}
+    </if>
+    ORDER BY popularity DESC, create_time DESC
+    </script>
+    """)
+    List<Article> findHotArticlesByCategory(@Param("categoryId") Integer categoryId);
+
+    // 分页查询热门文章
+    @Select("""
+    <script>
+    SELECT * FROM article 
+    WHERE state = '已发布' 
+    AND popularity > 5
+    <if test='categoryId != null'>
+        AND category_id = #{categoryId}
+    </if>
+    ORDER BY popularity DESC, create_time DESC
+    </script>
+    """)
+    List<Article> findHotArticlesWithPage(@Param("categoryId") Integer categoryId);
+
 }

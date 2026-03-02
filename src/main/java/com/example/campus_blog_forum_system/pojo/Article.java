@@ -29,7 +29,7 @@ public class Article
     @URL
     private String coverImg;        //封面图像
     @State
-    private String state;           //文章发布状态
+    private String state;           //文章发布状态 已发布 草稿 高舆情
     @NotNull
     private Integer categoryId;     //文章分类ID
     private Integer createUser;     //创建人ID
@@ -39,6 +39,7 @@ public class Article
     @NotNull
     private Integer creatorType;    //创建者身份0 -- 普通用户， 1 -- 管理员
 
+    private Integer popularity;
 
 
     // 添加 getter 和 setter 方法
@@ -141,5 +142,15 @@ public class Article
     public void setCreatorType(Integer creatorType)
     {
         this.creatorType = creatorType;
+    }
+
+    public Integer getPopularity()
+    {
+        return popularity;
+    }
+
+    public void setPopularity(Integer popularity)
+    {
+        this.popularity = popularity;
     }
 }

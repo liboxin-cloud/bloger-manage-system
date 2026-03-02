@@ -181,6 +181,35 @@ public class ArticleServiceImpl implements ArticleService
         Article article = articleMapper.findById(id);
         return article;
     }
+
+    @Override
+    public PageBean<Article> findHotArticles(Integer pageNum, Integer pageSize, Integer categoryId) {
+        // 参数验证
+        if (pageNum == null || pageNum < 1) pageNum = 1;
+        if (pageSize == null || pageSize < 1) pageSize = 10;
+
+        // 开启分页
+        PageHelper.startPage(pageNum, pageSize);
+
+        // 查询热门文章
+        List<Article> articles = articleMapper.findHotArticlesByCategory(categoryId);
+
+        // 使用PageInfo包装结果
+        PageInfo<Article> pageInfo = new PageInfo<>(articles);
+
+        // 创建并填充PageBean对象
+        PageBean<Article> pb = new PageBean<>();
+        pb.setTotal(pageInfo.getTotal());
+        pb.setPageNum(pageInfo.getPageNum());
+        pb.setPageSize(pageInfo.getPageSize());
+        pb.setPages(pageInfo.getPages());
+        pb.setItems(pageInfo.getList());
+        pb.setHasNextPage(pageInfo.isHasNextPage());
+        pb.setHasPreviousPage(pageInfo.isHasPreviousPage());
+
+        return pb;
+    }
+
 }
 
 

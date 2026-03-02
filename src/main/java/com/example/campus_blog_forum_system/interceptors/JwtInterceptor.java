@@ -109,6 +109,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                 "/captcha/generate",
                 "/register",
                 "/index/my-article",
+                "/index/publish",
                 "/my-article",
                 "/homepage",
                 "/index/homepage",

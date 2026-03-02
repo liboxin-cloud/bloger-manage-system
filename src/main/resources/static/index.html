@@ -112,10 +112,10 @@
                     <a class="nav-link active" href="#">首页</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">热门文章</a>
+                    <a class="nav-link" href="#" onclick="loadHotArticles(); return false;">热门文章</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">最新发布</a>
+                    <a class="nav-link" href="#" onclick="loadLatestArticles(); return false;">最新发布</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center" id="userActions">
@@ -478,27 +478,39 @@
     }
 
     // 加载文章列表
-    function loadArticles(page) {
+    // 修改 loadArticles 函数，添加 mode 参数
+    function loadArticles(page, mode = 'normal') {
         currentPage = page;
+
+        // 保存当前模式
+        window.currentMode = mode;
 
         // 显示加载中
         const container = document.getElementById('articlesContainer');
         container.innerHTML = `
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">加载中...</span>
-                </div>
-                <p class="mt-2">加载文章中...</p>
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
             </div>
-        `;
+            <p class="mt-2">加载文章中...</p>
+        </div>
+    `;
 
-        let url = `/user/article?pageNum=${page}&pageSize=${pageSize}`;
+        let url;
+        if (mode === 'hot') {
+            // 热门文章接口
+            url = `/article/hot?pageNum=${page}&pageSize=${pageSize}`;
+        } else {
+            // 普通文章接口
+            url = `/article/page?pageNum=${page}&pageSize=${pageSize}`;
+        }
 
         if (currentFilters.categoryId) {
             url += `&categoryId=${currentFilters.categoryId}`;
         }
 
-        if (currentFilters.state) {
+        // 普通模式才传状态筛选
+        if (mode !== 'hot' && currentFilters.state) {
             url += `&state=${currentFilters.state}`;
         }
 
@@ -506,7 +518,7 @@
             .then(response => {
                 if (response.data.code === 0 && response.data.data) {
                     const data = response.data.data;
-                    renderArticles(data.items || []);
+                    renderArticles(data.items || [], mode);
                     renderPagination(data.total || 0, page, pageSize);
                 } else {
                     renderArticles([]);
@@ -516,26 +528,72 @@
             .catch(error => {
                 console.error('加载文章失败:', error);
                 container.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        加载文章失败，请稍后重试
-                    </div>
-                `;
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    加载文章失败，请稍后重试
+                </div>
+            `;
             });
     }
 
+    // 加载热门文章
+    function loadHotArticles() {
+        // 更新当前模式
+        window.currentMode = 'hot';
+        currentFilters.state = '已发布';  // 只显示已发布的
+        currentFilters.categoryId = '';   // 重置分类筛选
+
+        // 更新UI
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('stateFilter').value = '已发布';
+
+        // 重置分类列表激活状态
+        document.querySelectorAll('.category-list .list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector('.category-list .list-group-item:first-child').classList.add('active');
+
+        // 加载热门文章
+        loadArticles(1, 'hot');
+    }
+
+    // 加载最新文章
+    function loadLatestArticles() {
+        // 更新当前模式
+        window.currentMode = 'latest';
+        currentFilters.state = '已发布';
+        currentFilters.categoryId = '';
+
+        // 更新UI
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('stateFilter').value = '已发布';
+
+        // 重置分类列表
+        document.querySelectorAll('.category-list .list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector('.category-list .list-group-item:first-child').classList.add('active');
+
+        // 加载最新文章
+        loadArticles(1, 'latest');
+    }
     // 渲染文章列表
-    function renderArticles(articles) {
+    // 渲染文章列表 - 添加 mode 参数
+    function renderArticles(articles, mode = 'normal') {
         const container = document.getElementById('articlesContainer');
 
         if (!articles || articles.length === 0) {
+            let message = '当前没有符合条件的文章';
+            if (mode === 'hot') {
+                message = '暂无热门文章';
+            }
             container.innerHTML = `
-                <div class="no-articles">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <h4>暂无文章</h4>
-                    <p>当前没有符合条件的文章</p>
-                </div>
-            `;
+            <div class="no-articles">
+                <i class="bi bi-file-earmark-text"></i>
+                <h4>${message}</h4>
+                <p>稍后再来看看吧</p>
+            </div>
+        `;
             return;
         }
 
@@ -549,45 +607,56 @@
             // 处理封面图
             const coverImg = article.coverImg || 'https://via.placeholder.com/300x200';
 
+            // 生成热度星星（如果是热门模式）
+            const popularityStars = mode === 'hot' ? generatePopularityStars(article.popularity || 0) : '';
+
             const articleElement = document.createElement('div');
             articleElement.className = 'card article-card';
             articleElement.innerHTML = `
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        <img src="${coverImg}"
-                             class="img-fluid article-cover"
-                             alt="${article.title || '文章封面'}"
-                             onerror="this.src='https://via.placeholder.com/300x200'">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body h-100 d-flex flex-column">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="${coverImg}"
+                         class="img-fluid article-cover"
+                         alt="${article.title || '文章封面'}"
+                         onerror="this.src='https://via.placeholder.com/300x200'">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start">
                             <h5 class="card-title">
                                 <a href="#" class="text-decoration-none text-dark"
                                    onclick="viewArticle(${article.id}); return false;">
                                     ${article.title || '无标题'}
                                 </a>
                             </h5>
-                            <p class="card-text flex-grow-1">${article.content ? article.content.substring(0, 100) + '...' : '暂无内容'}</p>
-                            <div class="d-flex justify-content-between align-items-center mt-auto">
-                                <div>
-                                    <span class="category-badge me-2">${categoryName}</span>
-                                    ${article.state ? `
-                                        <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">
-                                            ${article.state}
-                                        </span>
-                                    ` : ''}
+                            ${mode === 'hot' ? `
+                                <div class="ms-2">
+                                    ${popularityStars}
+                                    <span class="badge bg-danger ms-1">热度 ${article.popularity || 0}</span>
                                 </div>
-                                <div class="article-meta">
-                                    <small>
-                                        <i class="bi bi-calendar me-1"></i>
-                                        ${formatDate(article.createTime)}
-                                    </small>
-                                </div>
+                            ` : ''}
+                        </div>
+                        <p class="card-text flex-grow-1">${article.content ? article.content.substring(0, 100) + '...' : '暂无内容'}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div>
+                                <span class="category-badge me-2">${categoryName}</span>
+                                ${article.state ? `
+                                    <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">
+                                        ${article.state}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div class="article-meta">
+                                <small>
+                                    <i class="bi bi-calendar me-1"></i>
+                                    ${formatDate(article.createTime)}
+                                </small>
                             </div>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
             container.appendChild(articleElement);
         });
     }
@@ -708,23 +777,6 @@
         });
     }
 
-    // 加载热门文章
-    function loadHotArticles() {
-        currentFilters.state = '已发布';
-        currentFilters.categoryId = '';
-        document.getElementById('categoryFilter').value = '';
-        document.getElementById('stateFilter').value = '已发布';
-        document.querySelectorAll('.category-list .list-group-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        document.querySelector('.category-list .list-group-item:first-child').classList.add('active');
-        loadArticles(1);
-    }
-
-    // 加载最新文章
-    function loadLatestArticles() {
-        loadHotArticles();
-    }
 </script>
 </body>
 </html>

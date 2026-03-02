@@ -49,6 +49,20 @@
             <version>3.0.3</version>
         </dependency>
 
+        <!-- HTTP客户端 -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+        </dependency>
+
+        <!-- JSON处理 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.83</version>  <!-- v1 的最新稳定版 -->
+        </dependency>
+
 
         <!-- MySQL驱动（Spring Boot父POM已管理版本，无需指定） -->
         <dependency>

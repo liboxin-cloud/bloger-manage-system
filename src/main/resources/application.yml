@@ -49,3 +49,8 @@ forgot-password:
     from: your-email@qq.com
     subject: 校园论坛 - 密码重置验证码
 
+ai:
+  baidu:
+    api-key: 你的API Key
+    secret-key: 你的Secret Key
+

@@ -490,14 +490,14 @@
         showLoading();
 
         // 发送请求
-        axios.post('/user/articles', article)
+        axios.post('/user/article', article)
             .then(response => {
                 if (response.data.code === 0) {
                     alert('文章发布成功！');
                     if (state === '已发布') {
-                        window.location.href = 'index';
+                        window.location.href = '/index';
                     } else {
-                        window.location.href = 'my-articles';
+                        window.location.href = '/my-articles';
                     }
                 } else {
                     alert('发布失败：' + response.data.message);

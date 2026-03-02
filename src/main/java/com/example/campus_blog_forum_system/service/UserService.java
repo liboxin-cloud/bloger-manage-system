@@ -8,7 +8,7 @@ public interface UserService
     public User findUserByName(String username);
 
     public String getPassword(String username);
-    void register(String username, String password);
+    void register(String username, String password, String email);
 
     void update(User user);
 
@@ -21,4 +21,6 @@ public interface UserService
     void updateUserStatus(Long userId, Integer status);
 
     PageInfo<User> findUsersByKeyword(int page, int size, String keyword);
+
+    public User findUserByEmail(String email);
 }
