@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息 - 校园论坛</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            overflow: hidden;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .profile-body {
+            padding: 30px;
+        }
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 25px;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #495057;
+            font-weight: 500;
+            padding: 12px 20px;
+        }
+        .nav-tabs .nav-link:hover {
+            border: none;
+            color: #667eea;
+        }
+        .nav-tabs .nav-link.active {
+            border: none;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            background: transparent;
+        }
+        .info-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            width: 100px;
+            display: inline-block;
+        }
+        .info-value {
+            color: #212529;
+        }
+        .btn-edit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 25px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        .btn-save {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 25px;
+            border-radius: 5px;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 25px;
+            border-radius: 5px;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+        .strength-weak {
+            background: #dc3545;
+            width: 33.33%;
+        }
+        .strength-medium {
+            background: #ffc107;
+            width: 66.66%;
+        }
+        .strength-strong {
+            background: #28a745;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index">
+            <i class="bi bi-chat-square-text me-2"></i>校园论坛
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/index">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/index/publish">发布文章</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/index/my-article">我的文章</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center" id="userActions">
+                <!-- 未登录状态 -->
+                <div id="guestActions" class="d-none">
+                    <a href="login" class="btn btn-outline-light me-2">登录</a>
+                    <a href="register" class="btn btn-light">注册</a>
+                </div>
+                <!-- 登录状态 -->
+                <div id="userActionsLoggedIn">
+                    <span class="text-white me-3" id="welcomeUser"></span>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>个人中心
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="user-info"><i class="bi bi-person me-2"></i>个人信息</a></li>
+                            <li><a class="dropdown-item" href="my-article"><i class="bi bi-file-earmark-text me-2"></i>我的文章</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 主要内容 -->
+<div class="container">
+    <div class="profile-container">
+        <div class="profile-header">
+            <img src="" alt="用户头像" class="profile-avatar" id="avatar">
+            <h3 id="displayUsername"></h3>
+            <p id="displayNickname"></p>
+        </div>
+
+        <div class="profile-body">
+            <!-- 提示信息 -->
+            <div class="alert alert-danger d-none" id="errorMessage"></div>
+            <div class="alert alert-success d-none" id="successMessage"></div>
+
+            <!-- 选项卡 -->
+            <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">基本信息</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit" type="button">修改资料</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button">修改密码</button>
+                </li>
+            </ul>
+
+            <!-- 选项卡内容 -->
+            <div class="tab-content">
+                <!-- 基本信息 -->
+                <div class="tab-pane fade show active" id="info">
+                    <div class="info-item">
+                        <span class="info-label">用户名：</span>
+                        <span class="info-value" id="infoUsername"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">昵称：</span>
+                        <span class="info-value" id="infoNickname"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">邮箱：</span>
+                        <span class="info-value" id="infoEmail"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">注册时间：</span>
+                        <span class="info-value" id="infoCreateTime"></span>
+                    </div>
+                </div>
+
+                <!-- 修改资料 -->
+                <div class="tab-pane fade" id="edit">
+                    <form id="editProfileForm">
+                        <div class="mb-3">
+                            <label for="editNickname" class="form-label">昵称</label>
+                            <input type="text" class="form-control" id="editNickname" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="editEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAvatar" class="form-label">头像URL</label>
+                            <input type="url" class="form-control" id="editAvatar" placeholder="请输入头像图片URL">
+                            <div class="form-text">留空则使用默认头像</div>
+                        </div>
+                        <button type="button" class="btn btn-save" id="saveProfileBtn">保存修改</button>
+                        <button type="button" class="btn btn-cancel ms-2" id="cancelEditBtn">取消</button>
+                    </form>
+                </div>
+
+                <!-- 修改密码 -->
+                <div class="tab-pane fade" id="password">
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label for="oldPassword" class="form-label">当前密码</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="oldPassword" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('oldPassword')">
+                                    <i class="bi bi-eye" id="oldPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">新密码</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="newPassword" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('newPassword')">
+                                    <i class="bi bi-eye" id="newPasswordIcon"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <div class="form-text">密码必须为5-16位，不能包含空格</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">确认新密码</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+                                    <i class="bi bi-eye" id="confirmPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-save" id="changePasswordBtn">修改密码</button>
+                        <button type="button" class="btn btn-cancel ms-2" id="cancelPasswordBtn">取消</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="bi bi-chat-square-text me-2"></i>校园论坛</h5>
+                <p>一个专为校园用户打造的交流平台，分享知识、经验和生活。</p>
+            </div>
+            <div class="col-md-3">
+                <h5>链接</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white text-decoration-none">关于我们</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">联系我们</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">帮助中心</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>关注我们</h5>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-white"><i class="bi bi-wechat"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-weibo"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="text-center">
+            <p class="mb-0">&copy; 2023 校园论坛. 保留所有权利.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 全局变量
+    let token = localStorage.getItem('userToken');
+
+    // 配置axios
+    axios.defaults.baseURL = window.location.origin;
+
+    // 请求拦截器
+    axios.interceptors.request.use(config => {
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    });
+
+    // 响应拦截器
+    axios.interceptors.response.use(response => response, error => {
+        if (error.response && error.response.status === 401) {
+            alert('登录已过期，请重新登录');
+            window.location.href = 'login';
+        }
+        return Promise.reject(error);
+    });
+
+    // 页面加载
+    document.addEventListener('DOMContentLoaded', function() {
+        checkLogin();
+        loadUserInfo();
+        bindEvents();
+
+        // 监听密码输入
+        document.getElementById('newPassword').addEventListener('input', checkPasswordStrength);
+    });
+
+    // 检查登录
+    function checkLogin() {
+        if (!token) {
+            alert('请先登录');
+            window.location.href = 'login';
+            return;
+        }
+
+        document.getElementById('guestActions').classList.add('d-none');
+        document.getElementById('userActionsLoggedIn').classList.remove('d-none');
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById('welcomeUser').textContent = `欢迎, ${payload.username}`;
+        } catch (e) {
+            console.error('解析token失败:', e);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('userToken');
+        window.location.href = 'login';
+    }
+
+    // 加载用户信息
+    function loadUserInfo() {
+        axios.get('/user/userInfo')
+            .then(response => {
+                if (response.data.code === 0 && response.data.data) {
+                    const user = response.data.data;
+                    renderUserInfo(user);
+                } else {
+                    showError('获取用户信息失败');
+                }
+            })
+            .catch(error => {
+                console.error('加载用户信息失败:', error);
+                showError('加载用户信息失败');
+            });
+    }
+
+    // 渲染用户信息
+    function renderUserInfo(user) {
+        // 基本信息
+        document.getElementById('displayUsername').textContent = user.username;
+        document.getElementById('displayNickname').textContent = user.nickname || '未设置';
+
+        // 头像
+        const avatarUrl = user.userPic || 'https://via.placeholder.com/120';
+        document.getElementById('avatar').src = avatarUrl;
+
+        // 信息面板
+        document.getElementById('infoUsername').textContent = user.username;
+        document.getElementById('infoNickname').textContent = user.nickname || '未设置';
+        document.getElementById('infoEmail').textContent = user.email || '未设置';
+        document.getElementById('infoCreateTime').textContent = formatDate(user.createTime);
+
+        // 编辑表单
+        document.getElementById('editNickname').value = user.nickname || '';
+        document.getElementById('editEmail').value = user.email || '';
+        document.getElementById('editAvatar').value = user.userPic || '';
+    }
+
+    // 绑定事件
+    function bindEvents() {
+        // 保存资料
+        document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+
+        // 取消编辑
+        document.getElementById('cancelEditBtn').addEventListener('click', function() {
+            // 切换到基本信息标签
+            document.getElementById('info-tab').click();
+        });
+
+        // 修改密码
+        document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
+
+        // 取消修改密码
+        document.getElementById('cancelPasswordBtn').addEventListener('click', function() {
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('info-tab').click();
+        });
+    }
+
+    // 保存资料
+    function saveProfile() {
+        const nickname = document.getElementById('editNickname').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        const userPic = document.getElementById('editAvatar').value.trim();
+
+        // 验证邮箱格式
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email && !emailRegex.test(email)) {
+            showError('请输入有效的邮箱地址');
+            return;
+        }
+
+        const userData = {
+            nickname: nickname,
+            email: email,
+            userPic: userPic
+        };
+
+        axios.put('/user/update', userData)
+            .then(response => {
+                if (response.data.code === 0) {
+                    showSuccess('资料修改成功');
+                    loadUserInfo(); // 重新加载用户信息
+                    document.getElementById('info-tab').click(); // 切换到基本信息标签
+                } else {
+                    showError(response.data.message || '修改失败');
+                }
+            })
+            .catch(error => {
+                console.error('修改资料失败:', error);
+                showError('修改资料失败');
+            });
+    }
+
+    // 修改密码
+    function changePassword() {
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        // 验证
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            showError('请填写所有密码字段');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showError('新密码与确认密码不一致');
+            return;
+        }
+
+        if (newPassword.length < 5 || newPassword.length > 16 || /\s/.test(newPassword)) {
+            showError('密码必须为5-16位且不能包含空格');
+            return;
+        }
+
+        const passwordData = {
+            old_pwd: oldPassword,
+            new_pwd: newPassword,
+            re_pwd: confirmPassword
+        };
+
+        axios.patch('/user/updatePwd', passwordData)
+            .then(response => {
+                if (response.data.code === 0) {
+                    showSuccess('密码修改成功');
+                    document.getElementById('changePasswordForm').reset();
+                    document.getElementById('info-tab').click(); // 切换到基本信息标签
+                } else {
+                    showError(response.data.message || '修改失败');
+                }
+            })
+            .catch(error => {
+                console.error('修改密码失败:', error);
+                showError('修改密码失败');
+            });
+    }
+
+    // 检查密码强度
+    function checkPasswordStrength() {
+        const password = document.getElementById('newPassword').value;
+        const strengthEl = document.getElementById('passwordStrength');
+
+        if (!password) {
+            strengthEl.className = 'password-strength';
+            return;
+        }
+
+        let strength = 0;
+
+        // 长度检查
+        if (password.length >= 5) strength++;
+        if (password.length >= 8) strength++;
+
+        // 包含数字
+        if (/\d/.test(password)) strength++;
+
+        // 包含字母
+        if (/[a-zA-Z]/.test(password)) strength++;
+
+        // 包含特殊字符
+        if (/[!@#$%^&*]/.test(password)) strength++;
+
+        if (strength <= 2) {
+            strengthEl.className = 'password-strength strength-weak';
+        } else if (strength <= 4) {
+            strengthEl.className = 'password-strength strength-medium';
+        } else {
+            strengthEl.className = 'password-strength strength-strong';
+        }
+    }
+
+    // 切换密码显示
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(inputId + 'Icon');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+
+    // 显示错误信息
+    function showError(message) {
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.textContent = message;
+        errorElement.classList.remove('d-none');
+
+        // 隐藏成功提示
+        document.getElementById('successMessage').classList.add('d-none');
+
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            errorElement.classList.add('d-none');
+        }, 3000);
+    }
+
+    // 显示成功信息
+    function showSuccess(message) {
+        const successElement = document.getElementById('successMessage');
+        successElement.textContent = message;
+        successElement.classList.remove('d-none');
+
+        // 隐藏错误提示
+        document.getElementById('errorMessage').classList.add('d-none');
+
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            successElement.classList.add('d-none');
+        }, 3000);
+    }
+
+    // 格式化日期
+    function formatDate(dateStr) {
+        if (!dateStr) return '未知';
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return dateStr;
+        }
+    }
+</script>
+</body>
+</html>

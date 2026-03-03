@@ -117,7 +117,8 @@ public class JwtInterceptor implements HandlerInterceptor {
                 "/forgot-password/verify-account",
                 "/forgot-password/reset",
                 "/forgot-password/verify-code",
-                "/forgot-password/resend-code"
+                "/forgot-password/resend-code",
+                "/index/user-info"
         };
         // 检查是否是静态资源（但排除.html文件）
         if (requestURI.endsWith(".html")) {

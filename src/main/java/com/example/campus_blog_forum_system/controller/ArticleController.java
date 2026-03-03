@@ -101,7 +101,7 @@ public class ArticleController
     @GetMapping("/{id}")
     public Result<Article> getById(@PathVariable Integer id) {
         try {
-            Article article = (Article) articleService.findByCreateUser(id);
+            Article article = articleService.findById(id);
             if (article == null) {
                 return new Result<>();
             }

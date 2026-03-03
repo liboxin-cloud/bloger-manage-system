@@ -604,46 +604,66 @@
     </div>
 </div>
 
-<!-- 添加文章模态框 -->
-<div class="modal fade" id="addArticleModal" tabindex="-1" aria-hidden="true">
+<!-- 文章详情模态框 -->
+<div class="modal fade" id="articleDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">添加文章</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text me-2"></i>文章详情
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="addArticleForm">
-                    <div class="mb-3">
-                        <label for="articleTitle" class="form-label">标题</label>
-                        <input type="text" class="form-control" id="articleTitle" required>
+                <!-- 加载状态 -->
+                <div id="detailLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
                     </div>
-                    <div class="mb-3">
-                        <label for="articleContent" class="form-label">内容</label>
-                        <textarea class="form-control" id="articleContent" rows="5" required></textarea>
+                    <p class="mt-2">正在加载文章详情...</p>
+                </div>
+
+                <!-- 文章内容（注意这里的ID都是detail开头） -->
+                <div id="articleContentPanel" style="display: none;">
+                    <h3 id="detailTitle" class="mb-3"></h3>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>分类：</strong> <span id="detailCategory" class="badge bg-info"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>状态：</strong> <span id="detailState" class="badge"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>创建时间：</strong> <span id="detailCreateTime"></span>
+                        </div>
                     </div>
+
                     <div class="mb-3">
-                        <label for="articleCoverImg" class="form-label">封面图片URL</label>
-                        <input type="url" class="form-control" id="articleCoverImg" required>
+                        <strong>创建人ID：</strong> <span id="detailCreateUser"></span>
                     </div>
+
                     <div class="mb-3">
-                        <label for="articleState" class="form-label">状态</label>
-                        <select class="form-select" id="articleState">
-                            <option value="已发布">已发布</option>
-                            <option value="草稿">草稿</option>
-                        </select>
+                        <strong>封面图片：</strong>
+                        <div class="text-center border p-2">
+                            <img id="detailCoverImg" src="" alt="封面" style="max-width: 100%; max-height: 200px;">
+                        </div>
                     </div>
+
                     <div class="mb-3">
-                        <label for="articleCategoryId" class="form-label">分类</label>
-                        <select class="form-select" id="articleCategoryId">
-                            <!-- 分类选项将通过JS动态加载 -->
-                        </select>
+                        <strong>文章内容：</strong>
+                        <!-- 注意这里是 detailContent，不是 articleContent -->
+                        <div id="detailContent" class="border p-3 bg-light" style="min-height: 100px;"></div>
                     </div>
-                </form>
+                </div>
+
+                <!-- 错误信息 -->
+                <div id="detailError" class="alert alert-danger d-none">
+                    <span id="errorMessage"></span>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveArticleBtn">保存</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
@@ -676,6 +696,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -1615,14 +1638,15 @@
     }
 
     // 渲染文章列表
+    // 渲染文章列表
     function renderArticles(articles) {
         const tbody = document.getElementById('articleTableBody');
         tbody.innerHTML = '';
 
-        console.log(articles);
+        console.log('渲染文章列表:', articles);
 
         if (!articles || articles.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">暂无文章数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无文章数据</td></tr>';
             return;
         }
 
@@ -1633,18 +1657,34 @@
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${article.id}</td>
-                <td>${article.title}</td>
-                <td>${categoryName}</td>
-                <td>${article.state}</td>
-                <td>${article.createUser}</td>
-                <td>${formatDate(article.createTime)}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteArticle(${article.id})">删除</button>
-                </td>
-            `;
+            <td>${article.id}</td>
+            <td class="fw-bold">${article.title}</td>
+            <td><span class="badge bg-info">${categoryName}</span></td>
+            <td>
+                <span class="badge ${article.state === '已发布' ? 'bg-success' : 'bg-secondary'}">
+                    ${article.state || '未知'}
+                </span>
+            </td>
+            <td>${article.createUser}</td>
+            <td>${formatDate(article.createTime)}</td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-info" onclick="viewArticleDetail(${article.id})"
+                            title="查看详情" data-bs-toggle="tooltip">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteArticle(${article.id})"
+                            title="删除文章" data-bs-toggle="tooltip">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
             tbody.appendChild(row);
         });
+
+        // 初始化工具提示
+        initTooltips();
     }
 
     // 删除文章
@@ -1672,6 +1712,128 @@
             .catch(error => {
                 console.error('删除文章失败:', error);
                 alert('删除文章失败: ' + (error.response?.data?.message || '未知错误'));
+            });
+    }
+
+
+    // 查看文章详情
+    // 查看文章详情
+    // 查看文章详情
+    function viewArticleDetail(articleId) {
+        console.log('查看文章详情，ID:', articleId);
+        console.log('当前categories数据:', categories);
+
+        // 获取模态框元素
+        const modal = document.getElementById('articleDetailModal');
+        if (!modal) {
+            console.error('找不到模态框元素！');
+            return;
+        }
+
+        const modalInstance = new bootstrap.Modal(modal);
+
+        // 获取各元素 - 注意这里要使用正确的ID
+        const loadingEl = document.getElementById('detailLoading');
+        const contentEl = document.getElementById('articleContentPanel');  // 修改这里
+        const errorEl = document.getElementById('detailError');
+        const errorMessageEl = document.getElementById('errorMessage');
+
+        // 重置显示状态
+        loadingEl.style.display = 'block';
+        contentEl.style.display = 'none';
+        errorEl.classList.add('d-none');
+
+        // 清空之前的内容
+        document.getElementById('detailTitle').innerHTML = '';
+        document.getElementById('detailCategory').innerHTML = '';
+        document.getElementById('detailState').innerHTML = '';
+        document.getElementById('detailState').className = 'badge';
+        document.getElementById('detailCreateTime').innerHTML = '';
+        document.getElementById('detailCreateUser').innerHTML = '';
+        document.getElementById('detailCoverImg').src = '';
+        document.getElementById('detailContent').innerHTML = '';
+
+        // 显示模态框
+        console.log('显示模态框');
+        modalInstance.show();
+
+        // 发送请求获取文章详情
+        axios.get(`/article/${articleId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('文章详情响应:', response.data);
+
+                // 隐藏加载状态
+                loadingEl.style.display = 'none';
+
+                if (response.data && response.data.code === 0 && response.data.data) {
+                    const article = response.data.data;
+                    console.log('文章数据:', article);
+
+                    // 查找分类名称
+                    let categoryName = '未知分类';
+                    if (categories && categories.length > 0) {
+                        const category = categories.find(c => c.id === article.categoryId);
+                        categoryName = category ? category.categoryName : '未知分类';
+                        console.log('找到分类:', categoryName);
+                    }
+
+                    // 填充数据
+                    document.getElementById('detailTitle').innerHTML = article.title || '无标题';
+                    document.getElementById('detailCategory').innerHTML = categoryName;
+
+                    // 状态
+                    const stateSpan = document.getElementById('detailState');
+                    stateSpan.innerHTML = article.state || '未知';
+                    if (article.state === '已发布') {
+                        stateSpan.className = 'badge bg-success';
+                    } else if (article.state === '草稿') {
+                        stateSpan.className = 'badge bg-secondary';
+                    } else {
+                        stateSpan.className = 'badge bg-info';
+                    }
+
+                    document.getElementById('detailCreateTime').innerHTML = formatDate(article.createTime);
+                    document.getElementById('detailCreateUser').innerHTML = article.createUser || '未知';
+
+                    const coverImg = article.coverImg || 'https://via.placeholder.com/800x400?text=暂无封面';
+                    document.getElementById('detailCoverImg').src = coverImg;
+
+                    const contentDiv = document.getElementById('detailContent');
+                    if (article.content) {
+                        contentDiv.innerHTML = article.content;
+                    } else {
+                        contentDiv.innerHTML = '<p class="text-muted text-center py-3">暂无内容</p>';
+                    }
+
+                    // 显示内容区域
+                    console.log('显示内容区域');
+                    contentEl.style.display = 'block';
+
+                } else {
+                    console.error('返回数据格式错误:', response.data);
+                    errorEl.classList.remove('d-none');
+                    errorMessageEl.innerHTML = response.data?.message || '获取文章详情失败';
+                }
+            })
+            .catch(error => {
+                console.error('加载文章详情失败:', error);
+                loadingEl.style.display = 'none';
+                errorEl.classList.remove('d-none');
+
+                let errorMsg = '网络错误，请稍后重试';
+                if (error.response) {
+                    if (error.response.status === 404) {
+                        errorMsg = '文章不存在或已被删除';
+                    } else if (error.response.data && error.response.data.message) {
+                        errorMsg = error.response.data.message;
+                    }
+                }
+                errorMessageEl.innerHTML = errorMsg;
             });
     }
     // 渲染文章分页
@@ -1752,26 +1914,36 @@
 
     // 加载分类列表
     function loadCategories() {
+        console.log('开始加载分类列表...');
         hideError('categoryError');
-        axios.get('/admin/category', {
+
+        return axios.get('/admin/category', {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         })
             .then(response => {
-                if (response.data.code !== 0) {
-                    showError('categoryError', '加载分类列表失败: ' + response.data.message);
-                    return;
-                }
+                console.log('分类列表响应:', response.data);
 
-                categories = response.data.data || [];
-                renderCategories(categories);
-                renderCategoryOptions(categories);
+                if (response.data.code === 0) {
+                    categories = response.data.data || [];
+                    console.log('分类数据加载成功:', categories);
+                    renderCategories(categories);
+                    renderCategoryOptions(categories);
+                    return Promise.resolve(categories);
+                } else {
+                    console.error('加载分类列表失败:', response.data.message);
+                    categories = [];
+                    showError('categoryError', '加载分类列表失败: ' + response.data.message);
+                    return Promise.reject(response.data.message);
+                }
             })
             .catch(error => {
                 console.error('加载分类列表失败:', error);
+                categories = [];
                 showError('categoryError', '加载分类列表失败: ' + (error.response?.data?.message || error.message));
+                return Promise.reject(error);
             });
     }
 
@@ -1934,6 +2106,14 @@
         const date = new Date(dateString);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
+
+    function initTooltips() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+
 </script>
 </body>
 </html>

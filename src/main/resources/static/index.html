@@ -109,7 +109,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#">首页</a>
+                    <a class="nav-link active" href="/index" onclick="loadHomePage(); return false;">首页</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#" onclick="loadHotArticles(); return false;">热门文章</a>
@@ -132,7 +132,7 @@
                             <i class="bi bi-person-circle me-1"></i>个人中心
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>个人信息</a></li>
+                            <li><a class="dropdown-item" href="/index/user-info"><i class="bi bi-person me-2"></i>个人信息</a></li>
                             <li><a class="dropdown-item" href="/index/my-article"><i class="bi bi-file-earmark-text me-2"></i>我的文章</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
@@ -530,7 +530,7 @@
                 container.innerHTML = `
                 <div class="alert alert-danger">
                     <i class="bi bi-exclamation-triangle me-2"></i>
-                    加载文章失败，请稍后重试
+                    请登录后查看文章
                 </div>
             `;
             });
@@ -576,6 +576,37 @@
 
         // 加载最新文章
         loadArticles(1, 'latest');
+    }
+
+
+    // 生成热度星星
+    function generatePopularityStars(popularity) {
+        if (!popularity) popularity = 0;
+
+        // 将热度0-10转换为星星数0-5
+        const starCount = Math.round(popularity / 2); // 0-5星
+        const fullStars = Math.floor(starCount);
+        const hasHalfStar = starCount - fullStars >= 0.5;
+
+        let stars = '';
+
+        // 添加实心星星
+        for (let i = 0; i < fullStars; i++) {
+            stars += '<i class="bi bi-star-fill text-warning"></i>';
+        }
+
+        // 添加半星
+        if (hasHalfStar) {
+            stars += '<i class="bi bi-star-half text-warning"></i>';
+        }
+
+        // 添加空心星星（补齐到5星）
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+            stars += '<i class="bi bi-star text-warning"></i>';
+        }
+
+        return stars;
     }
     // 渲染文章列表
     // 渲染文章列表 - 添加 mode 参数
@@ -687,11 +718,12 @@
         const prevItem = document.createElement('li');
         prevItem.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
         prevItem.innerHTML = `
-            <a class="page-link" href="#"
-               ${currentPage !== 1 ? `onclick="loadArticles(${currentPage - 1}); return false;"` : ''}>
-                <i class="bi bi-chevron-left"></i>
-            </a>
-        `;
+        <a class="page-link" href="#"
+           ${currentPage !== 1 ? `onclick="loadArticles(${currentPage - 1}, window.currentMode || 'normal'); return false;"` : ''}>
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    `;
+
         pagination.appendChild(prevItem);
 
         // 页码

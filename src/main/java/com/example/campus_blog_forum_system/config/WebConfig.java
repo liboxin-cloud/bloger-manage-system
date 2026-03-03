@@ -32,7 +32,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/homepage",
                         "/forgot-password",
                         "/forgot-password/**",
-                        "/index/publish");       // 如果直接访问my-articles.html也需要放行);
+                        "/index/publish",
+                        "/index/user-info");       // 如果直接访问my-articles.html也需要放行);
     }
 
     @Override
@@ -55,5 +56,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/my-articles").setViewName("forward:/static/my-article.html");
         registry.addViewController("/forgot-password").setViewName("forward:/static/forgot-password.html");
         registry.addViewController("/index/publish").setViewName("forward:/static/publish.html");
+        registry.addViewController("/index/user-info").setViewName("forward:/static/user-info.html");
     }
 }

@@ -286,7 +286,7 @@
     function loadMyArticles(page) {
         currentPage = page;
 
-        let url = `/article/my?pageNum=${page}&pageSize=${pageSize}`;
+        let url = `/user/my/articles?pageNum=${page}&pageSize=${pageSize}`;
 
         if (currentFilters.categoryId) {
             url += `&categoryId=${currentFilters.categoryId}`;
