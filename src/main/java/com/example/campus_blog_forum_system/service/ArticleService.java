@@ -29,4 +29,6 @@ public interface ArticleService
     public Article findById(Integer id);
 
     PageBean<Article> findHotArticles(Integer pageNum, Integer pageSize, Integer categoryId);
+
+    PageBean<Article> findViolationArticles(Integer pageNum, Integer pageSize, Integer categoryId);
 }

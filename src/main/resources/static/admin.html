@@ -299,20 +299,29 @@
                 <div class="alert alert-danger d-none" id="articleError"></div>
 
                 <div class="row mb-3">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select" id="articleCategoryFilter">
                             <option value="">所有分类</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select" id="articleStateFilter">
                             <option value="">所有状态</option>
                             <option value="已发布">已发布</option>
                             <option value="草稿">草稿</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <select class="form-select" id="violationFilter">
+                            <option value="">所有文章</option>
+                            <option value="violation">违规文章</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <button class="btn btn-primary" id="filterArticlesBtn">筛选</button>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-warning" id="batchCheckViolationBtn">批量检测违规</button>
                     </div>
                 </div>
 
@@ -324,6 +333,7 @@
                             <th>标题</th>
                             <th>分类</th>
                             <th>状态</th>
+                            <th>违规状态</th>
                             <th>创建人</th>
                             <th>创建时间</th>
                             <th>操作</th>
@@ -669,6 +679,51 @@
     </div>
 </div>
 
+<!-- 添加文章模态框 -->
+<div class="modal fade" id="addArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加文章</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addArticleForm">
+                    <div class="mb-3">
+                        <label for="articleTitle" class="form-label">标题</label>
+                        <input type="text" class="form-control" id="articleTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleContent" class="form-label">内容</label>
+                        <textarea class="form-control" id="articleContent" rows="5" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleCoverImg" class="form-label">封面图片URL</label>
+                        <input type="url" class="form-control" id="articleCoverImg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleState" class="form-label">状态</label>
+                        <select class="form-select" id="articleState">
+                            <option value="已发布">已发布</option>
+                            <option value="草稿">草稿</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="articleCategoryId" class="form-label">分类</label>
+                        <select class="form-select" id="articleCategoryId">
+                            <!-- 分类选项将通过JS动态加载 -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveArticleBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 添加分类模态框 -->
 <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -714,6 +769,7 @@
     let categories = [];
 
     let currentUserRole = null;
+    let violationFilter = '';
 
     // 添加响应拦截器，处理401错误（增强版）
     axios.interceptors.response.use(
@@ -1561,25 +1617,31 @@
         currentPage.articles = page;
         const categoryId = document.getElementById('articleCategoryFilter').value;
         const state = document.getElementById('articleStateFilter').value;
+        const violation = document.getElementById('violationFilter').value;
 
         // 确保page参数有默认值
         if (!page || page < 1) {
             page = 1;
         }
 
-        let url = `admin/articles?pageNum=${page}&pageSize=${pageSize}`;
+        let url;
+        if (violation === 'violation') {
+            // 违规文章接口
+            url = `/admin/articles/violation?pageNum=${page}&pageSize=${pageSize}`;
+        } else {
+            url = `admin/articles?pageNum=${page}&pageSize=${pageSize}`;
+            if (state) url += `&state=${state}`;
+        }
+
         if (categoryId) url += `&categoryId=${categoryId}`;
-        if (state) url += `&state=${state}`;
 
         console.log('请求文章列表URL:', url);
         console.log('当前用户角色:', currentUserRole);
 
         // 确保分类数据已加载后再加载文章
         if (categories.length === 0) {
-            // 如果分类数据未加载，先加载分类数据
             loadCategoriesForArticles(url);
         } else {
-            // 分类数据已存在，直接加载文章
             loadArticlesData(url);
         }
     }
@@ -1646,7 +1708,7 @@
         console.log('渲染文章列表:', articles);
 
         if (!articles || articles.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无文章数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">暂无文章数据</td></tr>';
             return;
         }
 
@@ -1654,6 +1716,14 @@
             // 查找分类名称
             const category = categories.find(c => c.id === article.categoryId);
             const categoryName = category ? category.categoryName : '未知分类';
+
+            // 违规状态显示
+            let violationBadge = '';
+            if (article.isViolation) {
+                violationBadge = '<span class="badge bg-danger" title="' + (article.violationReason || '违规内容') + '">违规</span>';
+            } else {
+                violationBadge = '<span class="badge bg-success">正常</span>';
+            }
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -1665,25 +1735,40 @@
                     ${article.state || '未知'}
                 </span>
             </td>
+            <td>${violationBadge}</td>  <!-- 违规状态列 -->
             <td>${article.createUser}</td>
             <td>${formatDate(article.createTime)}</td>
             <td>
-                <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-outline-info" onclick="viewArticleDetail(${article.id})"
-                            title="查看详情" data-bs-toggle="tooltip">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-outline-danger" onclick="deleteArticle(${article.id})"
-                            title="删除文章" data-bs-toggle="tooltip">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
+            <div class="btn-group btn-group-sm" role="group">
+            <button class="btn btn-outline-info" onclick="viewArticleDetail(${article.id})"
+            title="查看详情" data-bs-toggle="tooltip">
+            <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-outline-warning" onclick="checkViolation(${article.id})"
+            title="检测违规" data-bs-toggle="tooltip">
+            <i class="bi bi-shield-shaded"></i>
+            </button>
+            ${!article.isViolation ?
+            `<button class="btn btn-outline-danger" onclick="markViolation(${article.id})"
+                                title="标记违规" data-bs-toggle="tooltip">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </button>` :
+            `<button class="btn btn-outline-success" onclick="unmarkViolation(${article.id})"
+                                title="取消违规" data-bs-toggle="tooltip">
+                            <i class="bi bi-check-circle"></i>
+                        </button>`
+            }
+            <button class="btn btn-outline-danger" onclick="deleteArticle(${article.id})"
+            title="删除文章" data-bs-toggle="tooltip">
+            <i class="bi bi-trash"></i>
+            </button>
+            </div>
             </td>
-        `;
-            tbody.appendChild(row);
-        });
+            `;
+        tbody.appendChild(row);
+    });
 
-        // 初始化工具提示
+    // 初始化工具提示
         initTooltips();
     }
 
@@ -1913,83 +1998,137 @@
 
 
     // 加载分类列表
-    function loadCategories() {
-        console.log('开始加载分类列表...');
-        hideError('categoryError');
+        function loadCategories() {
+            console.log('开始加载分类列表...');
 
-        return axios.get('/admin/category', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+            const errorEl = document.getElementById('categoryError');
+            if (errorEl) {
+                hideError('categoryError');
+            } else {
+                console.warn('categoryError 元素不存在，跳过隐藏');
             }
-        })
-            .then(response => {
-                console.log('分类列表响应:', response.data);
 
-                if (response.data.code === 0) {
-                    categories = response.data.data || [];
-                    console.log('分类数据加载成功:', categories);
-                    renderCategories(categories);
-                    renderCategoryOptions(categories);
-                    return Promise.resolve(categories);
-                } else {
-                    console.error('加载分类列表失败:', response.data.message);
-                    categories = [];
-                    showError('categoryError', '加载分类列表失败: ' + response.data.message);
-                    return Promise.reject(response.data.message);
+            return axios.get('/admin/category', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             })
-            .catch(error => {
-                console.error('加载分类列表失败:', error);
-                categories = [];
-                showError('categoryError', '加载分类列表失败: ' + (error.response?.data?.message || error.message));
-                return Promise.reject(error);
-            });
-    }
+                .then(response => {
+                    console.log('分类列表响应:', response.data);
 
-    // 渲染分类列表
-    function renderCategories(categories) {
-        const tbody = document.getElementById('categoryTableBody');
-        tbody.innerHTML = '';
+                    if (response.data.code === 0) {
+                        categories = response.data.data || [];
+                        console.log('分类数据加载成功:', categories);
 
-        if (!categories || categories.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">暂无分类数据</td></tr>';
-            return;
+                        const tbody = document.getElementById('categoryTableBody');
+                        if (!tbody) {
+                            console.error('找不到 categoryTableBody 元素！');
+                            return Promise.reject('表格元素不存在');
+                        }
+
+                        renderCategories(categories);
+
+                        // 只在文章管理模块激活时才渲染分类选项
+                        const currentSection = sessionStorage.getItem('currentSection');
+                        if (currentSection === 'articles') {
+                            renderCategoryOptions(categories);
+                        } else {
+                            console.log('当前不在文章管理模块，跳过渲染分类选项');
+                        }
+
+                        return Promise.resolve(categories);
+                    } else {
+                        console.error('加载分类列表失败:', response.data.message);
+                        categories = [];
+                        if (errorEl) {
+                            showError('categoryError', '加载分类列表失败: ' + response.data.message);
+                        }
+                        return Promise.reject(response.data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载分类列表失败:', error);
+                    categories = [];
+                    if (errorEl) {
+                        showError('categoryError', '加载分类列表失败: ' + (error.response?.data?.message || error.message));
+                    }
+                    return Promise.reject(error);
+                });
         }
 
-        categories.forEach(category => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                    <td>${category.id}</td>
-                    <td>${category.categoryName}</td>
-                    <td>${category.categoryAlias}</td>
-                    <td>${formatDate(category.createTime)}</td>
-                    <td>${formatDate(category.updateTime)}</td>
-                    <td>
-<!--                        <button class="btn btn-sm btn-outline-primary">编辑</button>-->
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${category.id})">删除</button>
-                    </td>
-                `;
-            tbody.appendChild(row);
-        });
+        // 渲染分类列表
+        function renderCategories(categories) {
+            console.log('开始渲染分类列表，数据:', categories);
+
+            const tbody = document.getElementById('categoryTableBody');
+            if (!tbody) {
+                console.error('找不到 categoryTableBody 元素！');
+                return;
+            }
+
+            tbody.innerHTML = '';
+
+            if (!categories || categories.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">暂无分类数据</td></tr>';
+                return;
+            }
+
+            categories.forEach(category => {
+                try {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                <td>${category.id || ''}</td>
+                <td>${category.categoryName || ''}</td>
+                <td>${category.categoryAlias || ''}</td>
+                <td>${formatDate(category.createTime) || ''}</td>
+                <td>${formatDate(category.updateTime) || ''}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${category.id})">删除</button>
+                </td>
+            `;
+                    tbody.appendChild(row);
+                } catch (error) {
+                    console.error('渲染分类行失败:', error, category);
+                }
+            });
+            console.log('分类列表渲染完成');
     }
 
-    // 渲染分类选项
-    function renderCategoryOptions(categories) {
-        const select = document.getElementById('articleCategoryId');
-        const filterSelect = document.getElementById('articleCategoryFilter');
+        // 渲染分类选项
+        function renderCategoryOptions(categories) {
+            console.log('开始渲染分类选项，数据:', categories);
 
-        select.innerHTML = '';
-        filterSelect.innerHTML = '<option value="">所有分类</option>';
+            const select = document.getElementById('articleCategoryId');
+            const filterSelect = document.getElementById('articleCategoryFilter');
 
-        categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.categoryName;
-            select.appendChild(option.cloneNode(true));
-            filterSelect.appendChild(option);
-        });
-    }
+            // 检查元素是否存在
+            if (!select) {
+                console.warn('articleCategoryId 元素不存在，跳过渲染');
+            } else {
+                select.innerHTML = '';
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.categoryName;
+                    select.appendChild(option);
+                });
+            }
+
+            if (!filterSelect) {
+                console.warn('articleCategoryFilter 元素不存在，跳过渲染');
+            } else {
+                filterSelect.innerHTML = '<option value="">所有分类</option>';
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.categoryName;
+                    filterSelect.appendChild(option);
+                });
+            }
+
+            console.log('分类选项渲染完成');
+        }
 
     // 添加分类
     function addCategory() {

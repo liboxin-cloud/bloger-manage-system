@@ -3,6 +3,7 @@ package com.example.campus_blog_forum_system.mapper;
 import com.example.campus_blog_forum_system.pojo.Article;
 import org.apache.ibatis.annotations.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -23,7 +24,7 @@ public interface ArticleMapper
 
     @Select("""
     <script>
-    SELECT id, title, content, cover_img, state, category_id, create_user, create_time, update_time 
+    SELECT id, title, content, cover_img, state, category_id, create_user, create_time, update_time, popularity, is_violation, violation_reason, check_time, check_admin\s
     FROM article 
     WHERE 1=1
     <if test='categoryId != null'>
@@ -116,4 +117,40 @@ public interface ArticleMapper
     """)
     List<Article> findHotArticlesWithPage(@Param("categoryId") Integer categoryId);
 
+
+
+    // 在 ArticleMapper.java 中添加
+
+    // 查询违规文章
+    @Select("""
+    <script>
+    SELECT * FROM article 
+    WHERE is_violation = TRUE
+    <if test='categoryId != null'>
+        AND category_id = #{categoryId}
+    </if>
+    ORDER BY check_time DESC
+    </script>
+    """)
+    List<Article> findViolationArticles(@Param("categoryId") Integer categoryId);
+
+    // 更新文章违规状态
+    @Update("UPDATE article SET is_violation = #{isViolation}, violation_reason = #{violationReason}, " +
+            "check_time = #{checkTime}, check_admin = #{checkAdmin} WHERE id = #{id}")
+    void updateViolationStatus(Article article);
+
+    // 批量更新违规状态
+    @Update("""
+    <script>
+    UPDATE article SET is_violation = #{isViolation}, check_time = #{checkTime}, 
+    check_admin = #{checkAdmin} WHERE id IN 
+    <foreach collection='ids' item='id' open='(' separator=',' close=')'>
+        #{id}
+    </foreach>
+    </script>
+    """)
+    void batchUpdateViolationStatus(@Param("ids") List<Integer> ids,
+                                    @Param("isViolation") Boolean isViolation,
+                                    @Param("checkTime") LocalDateTime checkTime,
+                                    @Param("checkAdmin") Integer checkAdmin);
 }

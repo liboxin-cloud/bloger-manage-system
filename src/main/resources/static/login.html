@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园论坛管理系统 - 登录</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
@@ -210,8 +210,8 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/axios.min.js"></script>
 <script>
     // 全局变量
     let userType = 'user'; // 默认为普通用户
@@ -348,6 +348,11 @@
             return;
         }
 
+        if (!captcha) {
+            showError('请输入验证码');
+            return;
+        }
+
         // 验证用户名格式
         if (username.length < 5 || username.length > 16 || /\s/.test(username)) {
             showError('用户名必须为5-16位且不能包含空格');
@@ -360,12 +365,6 @@
             return;
         }
 
-        // 验证验证码
-        if (!captcha) {
-            showError('请输入验证码');
-            return;
-        }
-
         // 显示加载状态
         setLoginButtonState(true);
         hideError();
@@ -374,59 +373,58 @@
         if (userType === 'admin') {
             adminLogin(username, password, captcha);
         } else {
-            userLogin(username, password);
+            userLogin(username, password); // userLogin 内部会获取验证码
         }
     }
 
 
     // 普通用户登录
-    // 普通用户登录函数
     function userLogin(username, password) {
+        const captcha = document.getElementById('captcha').value.trim(); // 获取验证码
+
         const params = new URLSearchParams();
         params.append('username', username);
         params.append('password', password);
+        params.append('captcha', captcha); // 添加验证码参数
 
         axios.post('/user/login', params, {
             headers: {
-                // 修改为正确的Content-Type
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
             .then(response => {
-                // 注意：根据你的Result类，成功时code应该是1，失败时是0
                 if (response.data.code === 1) {
                     showError(response.data.message || '登录失败');
                     setLoginButtonState(false);
+                    refreshCaptcha(); // 刷新验证码
                     return;
                 }
 
-                // 直接从data字段获取token
                 const data = response.data.data || {};
                 const token = data.token;
 
                 if (!token) {
                     showError('登录成功但未获取到token');
                     setLoginButtonState(false);
+                    refreshCaptcha();
                     return;
                 }
 
-                // 保存token
                 localStorage.setItem('userToken', token);
 
-                // 处理记住我功能
                 if (document.getElementById('rememberMe').checked) {
                     localStorage.setItem('rememberedUser', username);
                 } else {
                     localStorage.removeItem('rememberedUser');
                 }
 
-                // 跳转到首页 - 使用相对路径
                 window.location.href = '/index';
             })
             .catch(error => {
                 console.error('登录失败:', error);
                 showError(error.response?.data?.message || '登录失败，请检查用户名和密码');
                 setLoginButtonState(false);
+                refreshCaptcha(); // 刷新验证码
             });
     }
 

@@ -41,6 +41,11 @@ public class Article
 
     private Integer popularity;
 
+    private Boolean isViolation;        // 是否违规（true=违规，false=正常）
+    private String violationReason;     // 违规原因
+    private LocalDateTime checkTime;    // 审核时间
+    private Integer checkAdmin;         // 审核管理员ID
+
 
     // 添加 getter 和 setter 方法
     public Integer getId()
@@ -152,5 +157,45 @@ public class Article
     public void setPopularity(Integer popularity)
     {
         this.popularity = popularity;
+    }
+
+    public Boolean getViolation()
+    {
+        return isViolation;
+    }
+
+    public void setViolation(Boolean violation)
+    {
+        isViolation = violation;
+    }
+
+    public void setViolationReason(String violationReason)
+    {
+        this.violationReason = violationReason;
+    }
+
+    public String getViolationReason()
+    {
+        return violationReason;
+    }
+
+    public Integer getCheckAdmin()
+    {
+        return checkAdmin;
+    }
+
+    public void setCheckAdmin(Integer checkAdmin)
+    {
+        this.checkAdmin = checkAdmin;
+    }
+
+    public LocalDateTime getCheckTime()
+    {
+        return checkTime;
+    }
+
+    public void setCheckTime(LocalDateTime checkTime)
+    {
+        this.checkTime = checkTime;
     }
 }

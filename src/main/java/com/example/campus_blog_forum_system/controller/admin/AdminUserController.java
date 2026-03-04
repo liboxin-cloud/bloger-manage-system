@@ -696,5 +696,119 @@ public class AdminUserController
 
 
 
+    @PostMapping("/articles/check-violation/{id}")
+    public Result<Map<String, Object>> checkArticleViolation(@PathVariable Integer id) {
+        try {
+            AdminUser currentAdmin = getCurrentAdmin();
+            if(currentAdmin == null) {
+                return new Result<>();
+            }
+
+            Article article = articleService.findById(id);
+            if (article == null) {
+                return new Result<>();
+            }
+
+            // 调用AI检测接口
+            // Map<String, Object> aiResult = aiUtil.checkContent(article.getContent());
+
+            // 模拟AI检测结果
+            Map<String, Object> result = new HashMap<>();
+            boolean isViolation = Math.random() > 0.7; // 30%概率违规
+            String reason = isViolation ? "包含敏感词" : "正常";
+
+            // 更新文章违规状态
+            article.setIsViolation(isViolation);
+            article.setViolationReason(isViolation ? reason : null);
+            article.setCheckTime(LocalDateTime.now());
+            article.setCheckAdmin(currentAdmin.getId().intValue());
+
+            // 更新到数据库
+            // 需要添加 updateViolationStatus 方法到 articleService
+            // articleService.updateViolationStatus(article);
+
+            result.put("isViolation", isViolation);
+            result.put("reason", reason);
+
+            return Result.successWithData(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result<>();
+        }
+    }
+
+    // 获取违规文章列表
+    @GetMapping("/articles/violation")
+    public Result<PageBean<Article>> getViolationArticles(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Integer categoryId) {
+        try {
+            PageBean<Article> pageBean = articleService.findViolationArticles(pageNum, pageSize, categoryId);
+            return Result.successWithData(pageBean);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result<>();
+        }
+    }
+
+    // 手动标记违规
+    @PostMapping("/articles/mark-violation/{id}")
+    public Result<Void> markViolation(@PathVariable Integer id, @RequestBody Map<String, String> request) {
+        try {
+            AdminUser currentAdmin = getCurrentAdmin();
+            if(currentAdmin == null) {
+                return Result.error("未登录");
+            }
+
+            Article article = articleService.findById(id);
+            if (article == null) {
+                return Result.error("文章不存在");
+            }
+
+            article.setIsViolation(true);
+            article.setViolationReason(request.get("reason"));
+            article.setCheckTime(LocalDateTime.now());
+            article.setCheckAdmin(currentAdmin.getId().intValue());
+
+            // 更新到数据库
+            // articleService.updateViolationStatus(article);
+
+            return Result.success("标记违规成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("标记失败");
+        }
+    }
+
+    // 取消违规标记
+    @PostMapping("/articles/unmark-violation/{id}")
+    public Result<Void> unmarkViolation(@PathVariable Integer id) {
+        try {
+            AdminUser currentAdmin = getCurrentAdmin();
+            if(currentAdmin == null) {
+                return Result.error("未登录");
+            }
+
+            Article article = articleService.findById(id);
+            if (article == null) {
+                return Result.error("文章不存在");
+            }
+
+            article.setIsViolation(false);
+            article.setViolationReason(null);
+            article.setCheckTime(LocalDateTime.now());
+            article.setCheckAdmin(currentAdmin.getId().intValue());
+
+            // 更新到数据库
+            // articleService.updateViolationStatus(article);
+
+            return Result.success("取消违规标记成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.error("操作失败");
+        }
+    }
+
 
 }

@@ -38,19 +38,19 @@ public class AdminAuthController {
         try{
             //===============================验证码模块==========================================
 
-//            try {
-//                String sessionCaptcha = (String) session.getAttribute("captcha");
-//                if (sessionCaptcha == null ||
-//                        request.getCaptcha() == null ||
-//                        !sessionCaptcha.equalsIgnoreCase(request.getCaptcha())) {
-//                    return ResponseEntity.status(401).body(Map.of("error", "验证码错误"));
-//                }
-//            } catch(Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//            // 验证成功后清除验证码，防止重复使用
-//            session.removeAttribute("captcha");
+            try {
+                String sessionCaptcha = (String) session.getAttribute("captcha");
+                if (sessionCaptcha == null ||
+                        request.getCaptcha() == null ||
+                        !sessionCaptcha.equalsIgnoreCase(request.getCaptcha())) {
+                    return ResponseEntity.status(401).body(Map.of("error", "验证码错误"));
+                }
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+
+            // 验证成功后清除验证码，防止重复使用
+            session.removeAttribute("captcha");
 
 
             //===============================验证码模块==========================================

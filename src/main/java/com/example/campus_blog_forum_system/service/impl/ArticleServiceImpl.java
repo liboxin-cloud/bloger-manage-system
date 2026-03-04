@@ -210,6 +210,29 @@ public class ArticleServiceImpl implements ArticleService
         return pb;
     }
 
+
+    @Override
+    public PageBean<Article> findViolationArticles(Integer pageNum, Integer pageSize, Integer categoryId) {
+        if (pageNum == null || pageNum < 1) pageNum = 1;
+        if (pageSize == null || pageSize < 1) pageSize = 10;
+
+        PageHelper.startPage(pageNum, pageSize);
+        List<Article> articles = articleMapper.findViolationArticles(categoryId);
+
+        PageInfo<Article> pageInfo = new PageInfo<>(articles);
+
+        PageBean<Article> pb = new PageBean<>();
+        pb.setTotal(pageInfo.getTotal());
+        pb.setPageNum(pageInfo.getPageNum());
+        pb.setPageSize(pageInfo.getPageSize());
+        pb.setPages(pageInfo.getPages());
+        pb.setItems(pageInfo.getList());
+        pb.setHasNextPage(pageInfo.isHasNextPage());
+        pb.setHasPreviousPage(pageInfo.isHasPreviousPage());
+
+        return pb;
+    }
+
 }
 
 

@@ -5,11 +5,13 @@ import com.example.campus_blog_forum_system.service.ArticleService;
 import com.example.campus_blog_forum_system.service.CategoryService;
 import com.example.campus_blog_forum_system.service.UserService;
 import com.example.campus_blog_forum_system.utils.ThreadLocalUtil;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.Pattern;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -75,8 +77,45 @@ public class UserController
         return Result.success();
     }
     @RequestMapping("/login")
-    public Result<Map<String, Object>> login(@Pattern(regexp = "^\\S{5,16}$") String username, @Pattern(regexp = "^\\S{5,16}$") String password) {
+    public Result<Map<String, Object>> login(@Pattern(regexp = "^\\S{5,16}$") String username,
+                                             @Pattern(regexp = "^\\S{5,16}$") String password,
+                                             @RequestParam(required = false) String captcha,
+                                             HttpSession session) {
+        try {
+            // 获取session中的验证码
+            String sessionCaptcha = (String) session.getAttribute("captcha");
+
+            // 添加调试日志
+            System.out.println("===== 验证码验证 =====");
+            System.out.println("session中的验证码: " + sessionCaptcha);
+            System.out.println("用户输入的验证码: " + captcha);
+            System.out.println("session ID: " + session.getId());
+
+            // 验证验证码
+            if (sessionCaptcha == null) {
+                System.out.println("验证码错误：session中没有验证码");
+                return new Result<>(1, "验证码已过期，请刷新重试", null);
+            }
+
+            if (captcha == null) {
+                System.out.println("验证码错误：用户未输入验证码");
+                return new Result<>(1, "请输入验证码", null);
+            }
+
+            if (!sessionCaptcha.equalsIgnoreCase(captcha)) {
+                System.out.println("验证码错误：输入不匹配");
+                return new Result<>(1, "验证码错误", null);
+            }
+
+            // 验证成功后清除验证码，防止重复使用
+            session.removeAttribute("captcha");
+            System.out.println("验证码验证成功，已清除");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
         // 根据用户名来进行用户查询
+
         User loginUser = userService.findUserByName(username);
         // 判断用户是否存在
         if(loginUser == null) {
