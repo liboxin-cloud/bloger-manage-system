@@ -31,4 +31,6 @@ public interface ArticleService
     PageBean<Article> findHotArticles(Integer pageNum, Integer pageSize, Integer categoryId);
 
     PageBean<Article> findViolationArticles(Integer pageNum, Integer pageSize, Integer categoryId);
+
+    void updateViolationStatus(Article article);
 }

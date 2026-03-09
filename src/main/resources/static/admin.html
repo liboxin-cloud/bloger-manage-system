@@ -1735,7 +1735,7 @@
                     ${article.state || '未知'}
                 </span>
             </td>
-            <td>${violationBadge}</td>  <!-- 违规状态列 -->
+            <td>${violationBadge}</td>
             <td>${article.createUser}</td>
             <td>${formatDate(article.createTime)}</td>
             <td>
@@ -1919,6 +1919,88 @@
                     }
                 }
                 errorMessageEl.innerHTML = errorMsg;
+            });
+    }
+
+    function checkViolation(articleId) {
+        if (!confirm('确定要检测这篇文章是否违规吗？')) {
+            return;
+        }
+
+        axios.post(`/admin/articles/check-violation/${articleId}`, {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    const result = response.data.data;
+                    if (result.isViolation) {
+                        alert(`检测结果：文章违规\n原因：${result.reason}`);
+                    } else {
+                        alert('检测结果：文章内容正常');
+                    }
+                    // 刷新文章列表
+                    loadArticles(currentPage.articles);
+                } else {
+                    alert('检测失败: ' + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('检测违规失败:', error);
+                alert('检测失败: ' + (error.response?.data?.message || '未知错误'));
+            });
+    }
+
+    // 标记违规
+    function markViolation(articleId) {
+        const reason = prompt('请输入违规原因：');
+        if (reason === null) return; // 用户取消
+
+        axios.post(`/admin/articles/mark-violation/${articleId}`, { reason: reason }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    alert('文章标记违规成功');
+                    loadArticles(currentPage.articles);
+                } else {
+                    alert('标记失败: ' + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('标记违规失败:', error);
+                alert('标记失败: ' + (error.response?.data?.message || '未知错误'));
+            });
+    }
+
+    // 取消违规标记
+    function unmarkViolation(articleId) {
+        if (!confirm('确定要取消这篇文章的违规标记吗？')) {
+            return;
+        }
+
+        axios.post(`/admin/articles/unmark-violation/${articleId}`, {}, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.data.code === 0) {
+                    alert('取消违规标记成功');
+                    loadArticles(currentPage.articles);
+                } else {
+                    alert('操作失败: ' + response.data.message);
+                }
+            })
+            .catch(error => {
+                console.error('取消违规标记失败:', error);
+                alert('操作失败: ' + (error.response?.data?.message || '未知错误'));
             });
     }
     // 渲染文章分页

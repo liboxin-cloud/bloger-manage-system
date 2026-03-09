@@ -128,7 +128,8 @@ public class JwtUtil {
     /**
      * 构建Token的公共方法
      */
-    private static String buildToken(Map<String, String> claims, long expiration) {
+    private static String
+    buildToken(Map<String, String> claims, long expiration) {
         JWTCreator.Builder builder = JWT.create();
 
         // 添加claims

@@ -771,8 +771,7 @@ public class AdminUserController
             article.setCheckTime(LocalDateTime.now());
             article.setCheckAdmin(currentAdmin.getId().intValue());
 
-            // 更新到数据库
-            // articleService.updateViolationStatus(article);
+            articleService.updateViolationStatus(article);
 
             return Result.success("标记违规成功");
         } catch (Exception e) {
@@ -800,8 +799,7 @@ public class AdminUserController
             article.setCheckTime(LocalDateTime.now());
             article.setCheckAdmin(currentAdmin.getId().intValue());
 
-            // 更新到数据库
-            // articleService.updateViolationStatus(article);
+            articleService.updateViolationStatus(article);
 
             return Result.success("取消违规标记成功");
         } catch (Exception e) {

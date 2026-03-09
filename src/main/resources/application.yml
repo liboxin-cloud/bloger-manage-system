@@ -1,4 +1,13 @@
 spring:
+  ai:
+    openai:
+      api-key: sk-3c3a68457ea242b3abbdbd081a6310ce  # 从环境变量读取，避免硬编码
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat  # 或 deepseek-reasoner（带思考过程）
+          temperature: 0.7
+          max-tokens: 2000
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/big_event
@@ -49,8 +58,5 @@ forgot-password:
     from: your-email@qq.com
     subject: 校园论坛 - 密码重置验证码
 
-ai:
-  baidu:
-    api-key: 你的API Key
-    secret-key: 你的Secret Key
+
 

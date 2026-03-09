@@ -10,6 +10,211 @@
         body {
             background-color: #f8f9fa;
         }
+
+        /* AI助手样式 */
+        .ai-assistant {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+        }
+
+        .ai-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .ai-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .ai-chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-chat-window.show {
+            display: flex;
+        }
+
+        .ai-chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-chat-header button {
+            background: none;
+            border: none;
+            color: white;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .ai-chat-header button:hover {
+            opacity: 1;
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .ai-message {
+            justify-content: flex-start;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .user-message .message-avatar {
+            background: #6c757d;
+            margin-right: 0;
+            margin-left: 10px;
+            order: 1;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
+        }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .ai-chat-input {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .ai-chat-input textarea {
+            resize: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .ai-chat-input textarea:focus {
+            box-shadow: none;
+            border-color: #667eea;
+        }
+
+        .ai-chat-input button {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .ai-chat-input button:hover {
+            transform: scale(1.1);
+        }
+
+        .ai-loading {
+            position: absolute;
+            bottom: 80px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #667eea;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .ai-chat-window {
+                width: 300px;
+                height: 450px;
+                right: 0;
+            }
+        }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -97,6 +302,60 @@
     </style>
 </head>
 <body>
+
+<div class="ai-assistant">
+    <!-- AI助手浮动图标 -->
+    <div class="ai-icon" id="aiIcon">
+        <i class="bi bi-robot"></i>
+    </div>
+
+    <!-- AI聊天窗口 -->
+    <div class="ai-chat-window" id="aiChatWindow">
+        <!-- 聊天窗口头部 -->
+        <div class="ai-chat-header">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-robot me-2"></i>
+                <span>AI校园助手</span>
+            </div>
+            <div>
+                <button class="btn btn-sm text-white me-1" id="clearChat">
+                    <i class="bi bi-trash"></i>
+                </button>
+                <button class="btn btn-sm text-white" id="closeChat">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 聊天消息区域 -->
+        <div class="ai-chat-messages" id="chatMessages">
+            <div class="message ai-message">
+                <div class="message-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="message-content">
+                    你好！我是校园AI助手，可以帮你解答学习、生活相关问题。有什么我可以帮助你的吗？
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="ai-chat-input">
+            <textarea class="form-control" id="messageInput" placeholder="输入你的问题..." rows="1"></textarea>
+            <button class="btn btn-primary" id="sendMessage">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+
+        <!-- 加载动画 -->
+        <div class="ai-loading d-none" id="aiLoading">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">发送中...</span>
+            </div>
+            <span class="ms-2">AI正在思考中...</span>
+        </div>
+    </div>
+</div>
 <!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
@@ -279,6 +538,8 @@
         state: '已发布' // 默认只显示已发布的文章
     };
 
+    let aiChatInitialized = false;
+    let messageStream = null;
     // 配置axios
     axios.defaults.baseURL = window.location.origin;
 
@@ -317,7 +578,175 @@
         // 加载数据
         loadCategories();
         loadArticles(1);
+
+        initAIChat();
     });
+    function initAIChat() {
+        const aiIcon = document.getElementById('aiIcon');
+        const aiChatWindow = document.getElementById('aiChatWindow');
+        const closeChat = document.getElementById('closeChat');
+        const clearChat = document.getElementById('clearChat');
+        const sendMessage = document.getElementById('sendMessage');
+        const messageInput = document.getElementById('messageInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const aiLoading = document.getElementById('aiLoading');
+
+        // 打开聊天窗口
+        aiIcon.addEventListener('click', function() {
+            aiChatWindow.classList.add('show');
+        });
+
+        // 关闭聊天窗口
+        closeChat.addEventListener('click', function() {
+            aiChatWindow.classList.remove('show');
+        });
+
+        // 清除聊天记录
+        clearChat.addEventListener('click', function() {
+            if (confirm('确定要清除所有聊天记录吗？')) {
+                // 保留欢迎消息
+                chatMessages.innerHTML = `
+                <div class="message ai-message">
+                    <div class="message-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        你好！我是校园AI助手，可以帮你解答学习、生活相关问题。有什么我可以帮助你的吗？
+                    </div>
+                </div>
+            `;
+
+                // 调用清除历史接口
+                if (token) {
+                    axios.delete('/ai/history')
+                        .then(response => {
+                            console.log('清除历史成功:', response.data);
+                        })
+                        .catch(error => {
+                            console.error('清除历史失败:', error);
+                        });
+                }
+            }
+        });
+
+        // 发送消息（点击按钮）
+        sendMessage.addEventListener('click', sendChatMessage);
+
+        // 发送消息（按Enter键）
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+
+        // 自动调整文本框高度
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+
+    // 发送聊天消息
+    function sendChatMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+        const chatMessages = document.getElementById('chatMessages');
+        const aiLoading = document.getElementById('aiLoading');
+
+        if (!message) return;
+
+        // 检查是否登录
+        if (!token) {
+            alert('请先登录后再使用AI助手');
+            return;
+        }
+
+        // 添加用户消息到界面
+        addMessage('user', message);
+
+        // 清空输入框
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+
+        // 显示加载动画
+        aiLoading.classList.remove('d-none');
+
+        // 滚动到底部
+        scrollToBottom();
+
+        // 发送请求到后端
+        axios.post('/ai/chat', {
+            message: message
+        })
+            .then(response => {
+                aiLoading.classList.add('d-none');
+
+                if (response.data.code === 0 && response.data.data) {
+                    const aiResponse = response.data.data.response;
+                    // 添加AI回复到界面
+                    addMessage('ai', aiResponse);
+                } else {
+                    addMessage('ai', '抱歉，AI服务暂时不可用，请稍后再试。');
+                }
+            })
+            .catch(error => {
+                aiLoading.classList.add('d-none');
+                console.error('AI聊天失败:', error);
+
+                let errorMessage = '网络错误，请稍后再试。';
+                if (error.response && error.response.data && error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                }
+
+                addMessage('ai', '抱歉，' + errorMessage);
+            })
+            .finally(() => {
+                scrollToBottom();
+            });
+    }
+
+    // 添加消息到界面
+    function addMessage(type, content) {
+        const chatMessages = document.getElementById('chatMessages');
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type === 'user' ? 'user-message' : 'ai-message'}`;
+
+        if (type === 'user') {
+            messageDiv.innerHTML = `
+            <div class="message-content">${escapeHtml(content)}</div>
+            <div class="message-avatar">
+                <i class="bi bi-person"></i>
+            </div>
+        `;
+        } else {
+            messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div class="message-content">${escapeHtml(content)}</div>
+        `;
+        }
+
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // 转义HTML特殊字符
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 滚动到底部
+    function scrollToBottom() {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+
 
     // 初始化页面
     function initPage() {
@@ -418,7 +847,7 @@
         const userInfoContent = document.getElementById('userInfoContent');
 
         // 处理用户头像
-        const avatarUrl = user.userPic || 'https://via.placeholder.com/80';
+        const avatarUrl = user.userPic || '/static/pictures/001.jpg';
 
         // 处理昵称
         const nickname = user.nickname || user.username;
@@ -610,34 +1039,39 @@
         return stars;
     }
     // 渲染文章列表
-    // 渲染文章列表 - 添加 mode 参数
+    // 渲染文章列表 - 添加 mode 参数，并过滤违规文章
     function renderArticles(articles, mode = 'normal') {
         const container = document.getElementById('articlesContainer');
 
-        if (!articles || articles.length === 0) {
+        // 过滤掉违规文章
+        const normalArticles = articles.filter(article => !article.isViolation);
+
+        console.log('原始文章数:', articles.length, '过滤后文章数:', normalArticles.length);
+
+        if (!normalArticles || normalArticles.length === 0) {
             let message = '当前没有符合条件的文章';
             if (mode === 'hot') {
                 message = '暂无热门文章';
             }
             container.innerHTML = `
-            <div class="no-articles">
-                <i class="bi bi-file-earmark-text"></i>
-                <h4>${message}</h4>
-                <p>稍后再来看看吧</p>
-            </div>
-        `;
+        <div class="no-articles">
+            <i class="bi bi-file-earmark-text"></i>
+            <h4>${message}</h4>
+            <p>稍后再来看看吧</p>
+        </div>
+    `;
             return;
         }
 
         container.innerHTML = '';
 
-        articles.forEach(article => {
+        normalArticles.forEach(article => {
             // 查找分类名称
             const category = categories.find(c => c.id === article.categoryId);
             const categoryName = category ? category.categoryName : '未知分类';
 
             // 处理封面图
-            const coverImg = article.coverImg || 'https://via.placeholder.com/300x200';
+            const coverImg = article.coverImg || '/static/pictures/001.jpg';
 
             // 生成热度星星（如果是热门模式）
             const popularityStars = mode === 'hot' ? generatePopularityStars(article.popularity || 0) : '';
@@ -645,50 +1079,50 @@
             const articleElement = document.createElement('div');
             articleElement.className = 'card article-card';
             articleElement.innerHTML = `
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="${coverImg}"
-                         class="img-fluid article-cover"
-                         alt="${article.title || '文章封面'}"
-                         onerror="this.src='https://via.placeholder.com/300x200'">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body h-100 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">
-                                <a href="#" class="text-decoration-none text-dark"
-                                   onclick="viewArticle(${article.id}); return false;">
-                                    ${article.title || '无标题'}
-                                </a>
-                            </h5>
-                            ${mode === 'hot' ? `
-                                <div class="ms-2">
-                                    ${popularityStars}
-                                    <span class="badge bg-danger ms-1">热度 ${article.popularity || 0}</span>
-                                </div>
+        <div class="row g-0">
+            <div class="col-md-4">
+                <img src="${coverImg}"
+                     class="img-fluid article-cover"
+                     alt="${article.title || '文章封面'}"
+                     onerror="this.src='/static/pictures/001.jpg'">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="card-title">
+                            <a href="#" class="text-decoration-none text-dark"
+                               onclick="viewArticle(${article.id}); return false;">
+                                ${article.title || '无标题'}
+                            </a>
+                        </h5>
+                        ${mode === 'hot' ? `
+                            <div class="ms-2">
+                                ${popularityStars}
+                                <span class="badge bg-danger ms-1">热度 ${article.popularity || 0}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <p class="card-text flex-grow-1">${article.content ? article.content.substring(0, 100) + '...' : '暂无内容'}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <div>
+                            <span class="category-badge me-2">${categoryName}</span>
+                            ${article.state ? `
+                                <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">
+                                    ${article.state}
+                                </span>
                             ` : ''}
                         </div>
-                        <p class="card-text flex-grow-1">${article.content ? article.content.substring(0, 100) + '...' : '暂无内容'}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-auto">
-                            <div>
-                                <span class="category-badge me-2">${categoryName}</span>
-                                ${article.state ? `
-                                    <span class="article-state state-${article.state === '已发布' ? 'published' : 'draft'}">
-                                        ${article.state}
-                                    </span>
-                                ` : ''}
-                            </div>
-                            <div class="article-meta">
-                                <small>
-                                    <i class="bi bi-calendar me-1"></i>
-                                    ${formatDate(article.createTime)}
-                                </small>
-                            </div>
+                        <div class="article-meta">
+                            <small>
+                                <i class="bi bi-calendar me-1"></i>
+                                ${formatDate(article.createTime)}
+                            </small>
                         </div>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
             container.appendChild(articleElement);
         });
     }

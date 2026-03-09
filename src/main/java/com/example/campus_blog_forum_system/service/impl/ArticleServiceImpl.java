@@ -233,6 +233,11 @@ public class ArticleServiceImpl implements ArticleService
         return pb;
     }
 
+    @Override
+    public void updateViolationStatus(Article article) {
+        articleMapper.updateViolationStatus(article);
+    }
+
 }
 
 

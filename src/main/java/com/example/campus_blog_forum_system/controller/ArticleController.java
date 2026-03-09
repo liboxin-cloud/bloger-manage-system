@@ -72,6 +72,7 @@ public class ArticleController
                 article.setState("草稿");
             }
 
+
             articleService.add(article);
             return Result.success("文章发布成功");
         } catch (Exception e) {
